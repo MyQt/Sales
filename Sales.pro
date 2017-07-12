@@ -7,6 +7,7 @@
 QT += core gui sql network
 QT += gui-private
 QT += concurrent
+QT += printsupport
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -33,7 +34,8 @@ SOURCES += \
     billview.cpp \
     billwidgetdelegate.cpp \
     dbmanager.cpp \
-    singleinstance.cpp
+    singleinstance.cpp \
+    newdialog.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -42,7 +44,8 @@ HEADERS += \
     billview.h \
     billwidgetdelegate.h \
     dbmanager.h \
-    singleinstance.h
+    singleinstance.h \
+    newdialog.h
 
 FORMS += \
         mainwindow.ui

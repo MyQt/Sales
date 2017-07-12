@@ -4,6 +4,8 @@
 #include <QApplication>
 #include <QFontDatabase>
 
+#pragma execution_character_set("utf-8")
+
 int main(int argc, char *argv[])
 {
 //    QApplication::setDesktopSettingsAware(false);
@@ -30,6 +32,7 @@ int main(int argc, char *argv[])
 
     // Create and Show the app
     MainWindow w;
+    w.setWindowTitle("金花布业销售清单系统");
     w.show();
 
     // Bring the Notes window to the front
