@@ -16,7 +16,8 @@ public:
 
 private:
     QSqlDatabase m_db;
-    BillData* getBill(QString id);
+    QList<BillData*> getBillsByNo(QString no);
+
     bool permanantlyRemoveAllBills();
 
 signals:
@@ -24,11 +25,12 @@ signals:
 
 public slots:
     QList<BillData*> getAllBills();
+    QList<BillData*> getBillsByCustomer(const QString &customer);
     bool addBill(BillData* bill);
     bool removeBill(BillData* bill);
-    bool modifyBill(BillData* bill);
-    bool migrateBill(BillData* bill);
-    bool migrateTrash(BillData* bill);
+    bool removeBillsByCustomer(const QString &customer);
+    bool removeBillsByNo(const QString &no);
+    bool migrateBill(BillData* bill); // 插入表单
     int getLastRowID();
 };
 

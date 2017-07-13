@@ -13,11 +13,13 @@ public:
 
     enum BillRoles{
         BillID = Qt::UserRole + 1,
-        BillFullTitle,
+        BillNo,
+        BillVariety,
+        BillDetailCode,
+        BillPrice,
+        BillCustomer,
+        BillComment,
         BillCreationDateTime,
-        BillLastModificationDateTime,
-        BillDeletionDateTime,
-        BillContent,
         BillScrollbarPos
     };
 

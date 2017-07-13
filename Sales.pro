@@ -35,7 +35,7 @@ SOURCES += \
     billwidgetdelegate.cpp \
     dbmanager.cpp \
     singleinstance.cpp \
-    newdialog.cpp
+    newdlg.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -45,10 +45,11 @@ HEADERS += \
     billwidgetdelegate.h \
     dbmanager.h \
     singleinstance.h \
-    newdialog.h
+    newdlg.h
 
 FORMS += \
-        mainwindow.ui
+        mainwindow.ui \
+    newdlg.ui
 
 RESOURCES += \
     configure.qrc \

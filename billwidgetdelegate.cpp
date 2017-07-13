@@ -1,4 +1,4 @@
-#include "BillWidgetDelegate.h"
+﻿#include "BillWidgetDelegate.h"
 #include "BillView.h"
 #include <QPainter>
 #include <QEvent>
@@ -29,27 +29,28 @@ BillWidgetDelegate::BillWidgetDelegate(QObject *parent)
     int id = QFontDatabase::addApplicationFont(":/fonts/roboto-hinted/Roboto-Medium.ttf");
     QString robotoFontMedium = QFontDatabase::applicationFontFamilies(id).at(0);
 
-#ifdef __APPLE__
-    m_titleFont = QFont("Helvetica Neue", 13, 65);
-    m_dateFont = QFont("Helvetica Neue", 13);
-#else
     m_titleFont = QFont(robotoFontMedium, 10, 60);
     m_dateFont = QFont(robotoFontMedium, 10);
-#endif
 
     m_timeLine = new QTimeLine(300, this);
     m_timeLine->setFrameRange(0,m_maxFrame);
     m_timeLine->setUpdateInterval(10);
     m_timeLine->setCurveShape(QTimeLine::EaseInCurve);
 
-    connect( m_timeLine, &QTimeLine::frameChanged, [this](){
-        emit sizeHintChanged(m_animatedIndex);
-    });
+    connect( m_timeLine, &QTimeLine::frameChanged, this, &BillWidgetDelegate::onFrameChanged);
 
-    connect(m_timeLine, &QTimeLine::finished, [this](){
-        m_animatedIndex = QModelIndex();
-        m_state = Normal;
-    });
+    connect(m_timeLine, &QTimeLine::finished, this, &BillWidgetDelegate::onFinished);
+}
+
+void BillWidgetDelegate::onFrameChanged()
+{
+    emit sizeHintChanged(m_animatedIndex);
+}
+
+void BillWidgetDelegate::onFinished()
+{
+    m_animatedIndex = QModelIndex();
+    m_state = Normal;
 }
 
 void BillWidgetDelegate::setState(States NewState, QModelIndex index)
@@ -170,13 +171,14 @@ void BillWidgetDelegate::paintLabels(QPainter* painter, const QStyleOptionViewIt
     const int topOffsetY = 5;   // space on top of title
     const int spaceY = 1;       // space between title and date
 
-    QString title{index.data(BillModel::BillFullTitle).toString()};
+    QString title;
+    title.append(index.data(BillModel::BillVariety).toString());
     QFontMetrics fmTitle(m_titleFont);
     QRect fmRectTitle = fmTitle.boundingRect(title);
 
-    QString date = parseDateTime(index.data(BillModel::BillLastModificationDateTime).toDateTime());
+    QString date = parseDateTime(index.data(BillModel::BillCreationDateTime).toDateTime());
     QFontMetrics fmDate(m_dateFont);
-    QRect fmRectDate = fmDate.boundingRect(title);
+    QRect fmRectDate = fmDate.boundingRect(date);
 
     double rowPosX = option.rect.x();
     double rowPosY = option.rect.y();

@@ -1,10 +1,10 @@
-#include "BillModel.h"
+﻿#include "BillModel.h"
 #include <QDebug>
 
 BillModel::BillModel(QObject *parent)
     : QAbstractListModel(parent)
 {
-
+    m_billList.clear();
 }
 
 BillModel::~BillModel()
@@ -95,16 +95,26 @@ QVariant BillModel::data(const QModelIndex &index, int role) const
     BillData* bill = m_billList[index.row()];
     if(role == BillID){
         return bill->id();
-    }else if(role == BillFullTitle){
-        return bill->fullTitle();
+    }else if(role == BillNo)
+    {
+        return bill->no();
+    }else if(role == BillVariety)
+    {
+        return bill->variety();
+    }else if(role == BillDetailCode)
+    {
+        return bill->detailCode();
+    }else if(role == BillPrice)
+    {
+        return bill->price();
+    }else if(role == BillCustomer)
+    {
+        return bill->customer();
+    }else if(role == BillComment)
+    {
+        return bill->comment();
     }else if(role == BillCreationDateTime){
         return bill->creationDateTime();
-    }else if(role == BillLastModificationDateTime){
-        return bill->lastModificationdateTime();
-    }else if(role == BillDeletionDateTime){
-        return bill->deletionDateTime();
-    }else if(role == BillContent){
-        return bill->content();
     }else if(role == BillScrollbarPos){
         return bill->scrollBarPosition();
     }
@@ -122,16 +132,26 @@ bool BillModel::setData(const QModelIndex &index, const QVariant &value, int rol
 
     if(role == BillID){
         bill->setId(value.toString());
-    }else if(role == BillFullTitle){
-        bill->setFullTitle(value.toString());
+    }else if(role == BillNo)
+    {
+        bill->setNo(value.toString());
+    }else if(role == BillVariety)
+    {
+        bill->setVariety(value.toString());
+    }else if(role == BillDetailCode)
+    {
+        bill->setdetailCode(value.toString());
+    }else if(role == BillPrice)
+    {
+        bill->setPrice(value.toString());
+    }else if(role == BillCustomer)
+    {
+        bill->setCustomer(value.toString());
+    }else if(role == BillComment)
+    {
+        bill->setComment(value.toString());
     }else if(role == BillCreationDateTime){
         bill->setCreationDateTime(value.toDateTime());
-    }else if(role == BillLastModificationDateTime){
-        bill->setLastModificationDateTime(value.toDateTime());
-    }else if(role == BillDeletionDateTime){
-        bill->setDeletionDateTime(value.toDateTime());
-    }else if(role == BillContent){
-        bill->setContent(value.toString());
     }else if(role == BillScrollbarPos){
         bill->setScrollBarPosition(value.toInt());
     }else{
@@ -166,7 +186,7 @@ void BillModel::sort(int column, Qt::SortOrder order)
     Q_UNUSED(order)
 
     std::stable_sort(m_billList.begin(), m_billList.end(), [](BillData* lhs, BillData* rhs){
-        return lhs->lastModificationdateTime() > rhs->lastModificationdateTime();
+        return lhs->creationDateTime() > rhs->creationDateTime();
     });
 
     emit dataChanged(index(0), index(rowCount()-1));

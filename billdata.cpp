@@ -3,7 +3,6 @@
 
 BillData::BillData(QObject *parent)
     : QObject(parent),
-      m_isModified(false),
       m_isSelected(false),
       m_scrollBarPosition(0)
 {
@@ -20,44 +19,64 @@ void BillData::setId(const QString &id)
     m_id = id;
 }
 
-QString BillData::fullTitle() const
+QString BillData::no() const
 {
-    return m_fullTitle;
+    return m_no;
 }
 
-void BillData::setFullTitle(const QString &fullTitle)
+void BillData::setNo(const QString &no)
 {
-    m_fullTitle = fullTitle;
+    m_no = no;
 }
 
-QDateTime BillData::lastModificationdateTime() const
+QString BillData::variety() const
 {
-    return m_lastModificationDateTime;
+    return m_variety;
 }
 
-void BillData::setLastModificationDateTime(const QDateTime &lastModificationdateTime)
+void BillData::setVariety(const QString &variety)
 {
-    m_lastModificationDateTime = lastModificationdateTime;
+    m_variety = variety;
 }
 
-QString BillData::content() const
+QString BillData::detailCode() const
 {
-    return m_content;
+    return m_detail_code;
 }
 
-void BillData::setContent(const QString &content)
+void BillData::setdetailCode(const QString &detailCode)
 {
-    m_content = content;
+    m_detail_code = detailCode;
 }
 
-bool BillData::isModified() const
+QString BillData::price() const
 {
-    return m_isModified;
+    return m_price;
 }
 
-void BillData::setModified(bool isModified)
+void BillData::setPrice(const QString &price)
 {
-    m_isModified = isModified;
+    m_price = price;
+}
+
+QString BillData::customer() const
+{
+    return m_customer;
+}
+
+void BillData::setCustomer(const QString &customer)
+{
+    m_customer = customer;
+}
+
+QString BillData::comment() const
+{
+    return m_comment;
+}
+
+void BillData::setComment(const QString &comment)
+{
+    m_comment = comment;
 }
 
 bool BillData::isSelected() const
@@ -80,16 +99,6 @@ void BillData::setScrollBarPosition(int scrollBarPosition)
     m_scrollBarPosition = scrollBarPosition;
 }
 
-QDateTime BillData::deletionDateTime() const
-{
-    return m_deletionDateTime;
-}
-
-void BillData::setDeletionDateTime(const QDateTime& deletionDateTime)
-{
-    m_deletionDateTime = deletionDateTime;
-}
-
 QDateTime BillData::creationDateTime() const
 {
     return m_creationDateTime;
@@ -100,23 +109,44 @@ void BillData::setCreationDateTime(const QDateTime&creationDateTime)
     m_creationDateTime = creationDateTime;
 }
 
+BillData& BillData::operator=(const BillData& billData)
+{
+    setId(billData.id());
+    setNo(billData.no());
+    setVariety(billData.variety());
+    setdetailCode(billData.detailCode());
+    setPrice(billData.price());
+    setCustomer(billData.customer());
+    setComment(billData.comment());
+    setCreationDateTime(billData.creationDateTime());
+
+    return *this;
+}
+
 QDataStream &operator<<(QDataStream &stream, const BillData* billData) {
-    return stream << billData->id() << billData->fullTitle() << billData->creationDateTime() << billData->lastModificationdateTime() << billData->content();
+    return stream << billData->id() << billData->no() << billData->variety() << billData->detailCode() << billData->price() << billData->customer() << billData->comment() << billData->creationDateTime();
 }
 
 QDataStream &operator>>(QDataStream &stream, BillData* &billData){
     billData = new BillData();
     QString id;
-    QString fullTitle;
-    QDateTime lastModificationDateTime;
+    QString number; // 编号
+    QString variety; // 品种
+    QString detail_code; // 明细码
+    QString price; // 单价
+    QString customer; // 客户
+    QString comment; // 备注
     QDateTime creationDateTime;
-    QString content;
-    stream >> id >> fullTitle >> creationDateTime >> lastModificationDateTime >> content;
+    stream >> id >> number >> variety >> detail_code >> price >> customer >> comment >> creationDateTime;
     billData->setId(id);
-    billData->setFullTitle(fullTitle);
-    billData->setLastModificationDateTime(lastModificationDateTime);
+    billData->setNo(number);
+    billData->setVariety(variety);
+    billData->setdetailCode(detail_code);
+    billData->setPrice(price);
+    billData->setCustomer(customer);
+    billData->setComment(comment);
     billData->setCreationDateTime(creationDateTime);
-    billData->setContent(content);
+
     return stream;
 }
 

@@ -4,7 +4,9 @@
 #include "billdata.h"
 #include "billmodel.h"
 #include "billview.h"
+#include "billwidgetdelegate.h"
 #include "dbmanager.h"
+#include "newdlg.h"
 
 #include <QMainWindow>
 #include <QToolButton>
@@ -13,6 +15,8 @@
 #include <QAction>
 #include <QQueue>
 #include <QString>
+#include <QSettings>
+#include <QMenu>
 
 namespace Ui {
 class MainWindow;
@@ -27,12 +31,19 @@ public:
     ~MainWindow();
 public slots:
     void setMainWindowVisibility(bool state);
+private slots:
+    void on_btnInsert_clicked();
+
 private:
     Ui::MainWindow *ui;
     QToolButton* m_clearButton;
     QSystemTrayIcon* m_trayIcon;
     QAction* m_restoreAction;
     QAction* m_quitAction;
+    QMenu* m_trayIconMenu;
+
+    NewDlg* m_newDlg;
+    QSettings* m_settingsDatabase;
 
     BillView* m_billView;
     BillModel* m_billModel;
@@ -62,15 +73,34 @@ private:
     void setupLine();
     void setupLineEdit();
     void setupFonts();
+    void setupModelView();
+    void setupDatabases();
+    void setupTrayIcon();
+    void setupSignalsSlots();
+    void loadBills();
+    void initializeSettingsDatabase();
+    QDateTime getQDateTime (QString date);
     void clearSearch();
     void findBillsContain(const QString &keyword);
+    void moveBillToTop();
     void selectBill(const QModelIndex& billIndex);
     void selectFirstBill();
     void saveBillToDB(const QModelIndex& billIndex);
     void removeBillFromDB(const QModelIndex& billIndex);
     void deleteBill(const QModelIndex& billIndex, bool isFromUser=true);
-
+private slots:
     void onClearButtonClicked();
+    void createNewBill(QString no,
+                       QString variety,
+                       QString detail_code,
+                       QString price,
+                       QString customer,
+                       QString comment,
+                       QDateTime creationDateTime);
+    void onLineEditTextChanged(const QString& keyword);
+    void onBillPressed(const QModelIndex &index);
+    void QuitApplication();
+
 };
 
 #endif // MAINWINDOW_H

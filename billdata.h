@@ -15,21 +15,20 @@ public:
 
     QString id() const;
     void setId(const QString &id);
-
-    QString fullTitle() const;
-    void setFullTitle(const QString &fullTitle);
-
-    QDateTime lastModificationdateTime() const;
-    void setLastModificationDateTime(const QDateTime &lastModificationdateTime);
-
+    QString no() const;
+    void setNo(const QString &no);
+    QString variety() const;
+    void setVariety(const QString &variety);
+    QString detailCode() const;
+    void setdetailCode(const QString &detailCode);
+    QString price() const;
+    void setPrice(const QString &price);
+    QString customer() const;
+    void setCustomer(const QString &customer);
+    QString comment() const;
+    void setComment(const QString &comment);
     QDateTime creationDateTime() const;
     void setCreationDateTime(const QDateTime& creationDateTime);
-
-    QString content() const;
-    void setContent(const QString &content);
-
-    bool isModified() const;
-    void setModified(bool isModified);
 
     bool isSelected() const;
     void setSelected(bool isSelected);
@@ -37,30 +36,20 @@ public:
     int scrollBarPosition() const;
     void setScrollBarPosition(int scrollBarPosition);
 
-    QDateTime deletionDateTime() const;
-    void setDeletionDateTime(const QDateTime& deletionDateTime);
-
+    BillData& operator=(const BillData& billData);
 
 private:
     QString m_id;
-    QString m_number; // 编号
-    QString m_fullTitle;
+    QString m_no; // 编号
     QString m_variety; // 品种
     QString m_detail_code; // 明细码
     QString m_price; // 单价
-    QString m_sales; // 金额
     QString m_customer; // 客户
-    QString m_tel; // 电话
     QString m_comment; // 备注
-    QDateTime m_lastModificationDateTime;
     QDateTime m_creationDateTime;
-    QDateTime m_deletionDateTime;
-    QString m_content;
-    bool m_isModified;
     bool m_isSelected;
     int m_scrollBarPosition;
 };
-
 QDataStream &operator<<(QDataStream &stream, const BillData* BillData);
 QDataStream &operator>>(QDataStream &stream, BillData *&BillData);
 

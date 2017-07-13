@@ -1,11 +1,16 @@
-#include "singleinstance.h"
+﻿#include "singleinstance.h"
 
 
 SingleInstance::SingleInstance(QObject *parent)
     : QObject(parent)
 {
     connect(&m_server, &QLocalServer::newConnection,
-            [this](){emit newInstance();});
+            this, &SingleInstance::onNewConnection);
+}
+
+void SingleInstance::onNewConnection()
+{
+   emit newInstance();
 }
 
 void SingleInstance::listen(QString name)

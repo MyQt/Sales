@@ -1,4 +1,4 @@
-#include "dbmanager.h"
+﻿#include "dbmanager.h"
 #include <QtSql/QSqlQuery>
 #include <QTimeZone>
 #include <QDateTime>
@@ -22,25 +22,18 @@ DBManager::DBManager(const QString& path, bool doCreate, QObject *parent) : QObj
         QSqlQuery query;
         QString active = "CREATE TABLE active_bills ("
                          "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                         "creation_date INTEGER NOT NULL DEFAULT (0),"
-                         "modification_date INTEGER NOT NULL DEFAULT (0),"
-                         "deletion_date INTEGER NOT NULL DEFAULT (0),"
-                         "content TEXT, "
-                         "full_title TEXT);";
+                         "no TEXT, "
+                         "variety TEXT, "
+                         "detail_code TEXT, "
+                         "price FLOAT, "
+                         "customer TEXT, "
+                         "comment TEXT, "
+                         "creation_date INTEGER NOT NULL DEFAULT (0));";
 
         query.exec(active);
 
         QString active_index = "CREATE UNIQUE INDEX active_index on active_bills (id ASC);";
         query.exec(active_index);
-
-        QString deleted = "CREATE TABLE deleted_bills ("
-                          "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"
-                          "creation_date INTEGER NOT NULL DEFAULT (0),"
-                          "modification_date INTEGER NOT NULL DEFAULT (0),"
-                          "deletion_date INTEGER NOT NULL DEFAULT (0),"
-                          "content TEXT,"
-                          "full_title TEXT)";
-        query.exec(deleted);
     }
 }
 
@@ -57,36 +50,85 @@ bool DBManager::isBillExist(BillData* bill)
     return query.value(0).toInt() == 1;
 }
 
-BillData* DBManager::getBill(QString id) {
+QList<BillData*> DBManager::getBillsByNo(QString no) {
+    QList<BillData *> billList;
+    billList.clear();
+
     QSqlQuery query;
+    query.prepare(QStringLiteral("SELECT * FROM active_bills WHERE no = '%1'").arg(no));
+    bool status = query.exec();
+    if(status){
+        while(query.next()){
+            BillData* bill = new BillData(this);
+            QString id = query.value(0).toString();
+            QString no =  query.value(1).toString();
+            QString variety = query.value(2).toString();
+            QString detail_code = query.value(3).toString();
+            QString price = query.value(4).toString();
+            QString customer = query.value(5).toString();
+            QString comment = query.value(6).toString();
+            qint64 epochDateTimeCreation = query.value(7).toLongLong();
+            QDateTime dateTimeCreation = QDateTime::fromMSecsSinceEpoch(epochDateTimeCreation, QTimeZone::systemTimeZone());
+            bill->setId(id);
+            bill->setNo(no);
+            bill->setVariety(variety);
+            bill->setdetailCode(detail_code);
+            bill->setPrice(price);
+            bill->setCustomer(customer);
+            bill->setComment(comment);
+            bill->setCreationDateTime(dateTimeCreation);
 
-    int parsedId = id.split('_')[1].toInt();
-    QString queryStr = QStringLiteral("SELECT * FROM active_bills WHERE id = %1 LIMIT 1").arg(parsedId);
-    query.exec(queryStr);
+            billList.push_back(bill);
+        }
 
-    if (query.first()) {
-        BillData* bill = new BillData(this->parent() == Q_NULLPTR ? Q_NULLPTR : this);
-        int id =  query.value(0).toInt();
-        qint64 epochDateTimeCreation = query.value(1).toLongLong();
-        QDateTime dateTimeCreation = QDateTime::fromMSecsSinceEpoch(epochDateTimeCreation, QTimeZone::systemTimeZone());
-        qint64 epochDateTimeModification= query.value(2).toLongLong();
-        QDateTime dateTimeModification = QDateTime::fromMSecsSinceEpoch(epochDateTimeModification, QTimeZone::systemTimeZone());
-        QString content = query.value(4).toString();
-        QString fullTitle = query.value(5).toString();
-
-        bill->setId(QStringLiteral("billID_%1").arg(id));
-        bill->setCreationDateTime(dateTimeCreation);
-        bill->setLastModificationDateTime(dateTimeModification);
-        bill->setContent(content);
-        bill->setFullTitle(fullTitle);
-        return bill;
+        emit billsReceived(billList);
     }
-    return Q_NULLPTR;
+
+    return billList;
+}
+
+QList<BillData *> DBManager::getBillsByCustomer(const QString &customer)
+{
+    QList<BillData *> billList;
+    billList.clear();
+
+    QSqlQuery query;
+    query.prepare(QStringLiteral("SELECT * FROM active_bills WHERE customer = '%1'").arg(customer));
+    bool status = query.exec();
+    if(status){
+        while(query.next()){
+            BillData* bill = new BillData(this);
+            QString id = query.value(0).toString();
+            QString no =  query.value(1).toString();
+            QString variety = query.value(2).toString();
+            QString detail_code = query.value(3).toString();
+            QString price = query.value(4).toString();
+            QString customer = query.value(5).toString();
+            QString comment = query.value(6).toString();
+            qint64 epochDateTimeCreation = query.value(7).toLongLong();
+            QDateTime dateTimeCreation = QDateTime::fromMSecsSinceEpoch(epochDateTimeCreation, QTimeZone::systemTimeZone());
+            bill->setId(id);
+            bill->setNo(no);
+            bill->setVariety(variety);
+            bill->setdetailCode(detail_code);
+            bill->setPrice(price);
+            bill->setCustomer(customer);
+            bill->setComment(comment);
+            bill->setCreationDateTime(dateTimeCreation);
+
+            billList.push_back(bill);
+        }
+
+        emit billsReceived(billList);
+    }
+
+    return billList;
 }
 
 QList<BillData *> DBManager::getAllBills()
 {
     QList<BillData *> billList;
+    billList.clear();
 
     QSqlQuery query;
     query.prepare("SELECT * FROM active_bills");
@@ -94,19 +136,23 @@ QList<BillData *> DBManager::getAllBills()
     if(status){
         while(query.next()){
             BillData* bill = new BillData(this);
-            int id =  query.value(0).toInt();
-            qint64 epochDateTimeCreation = query.value(1).toLongLong();
+            QString id = query.value(0).toString();
+            QString no =  query.value(1).toString();
+            QString variety = query.value(2).toString();
+            QString detail_code = query.value(3).toString();
+            QString price = query.value(4).toString();
+            QString customer = query.value(5).toString();
+            QString comment = query.value(6).toString();
+            qint64 epochDateTimeCreation = query.value(7).toLongLong();
             QDateTime dateTimeCreation = QDateTime::fromMSecsSinceEpoch(epochDateTimeCreation, QTimeZone::systemTimeZone());
-            qint64 epochDateTimeModification= query.value(2).toLongLong();
-            QDateTime dateTimeModification = QDateTime::fromMSecsSinceEpoch(epochDateTimeModification, QTimeZone::systemTimeZone());
-            QString content = query.value(4).toString();
-            QString fullTitle = query.value(5).toString();
-
-            bill->setId(QStringLiteral("billID_%1").arg(id));
+            bill->setId(id);
+            bill->setNo(no);
+            bill->setVariety(variety);
+            bill->setdetailCode(detail_code);
+            bill->setPrice(price);
+            bill->setCustomer(customer);
+            bill->setComment(comment);
             bill->setCreationDateTime(dateTimeCreation);
-            bill->setLastModificationDateTime(dateTimeModification);
-            bill->setContent(content);
-            bill->setFullTitle(fullTitle);
 
             billList.push_back(bill);
         }
@@ -122,23 +168,36 @@ bool DBManager::addBill(BillData* bill)
     QSqlQuery query;
     QString emptyStr;
 
+    QString no = bill->no()
+            .replace("'","''")
+            .replace(QChar('\x0'), emptyStr);
+    QString variety  = bill->variety()
+                  .replace("'","''")
+                  .replace(QChar('\x0'), emptyStr);
+    QString detail_code  = bill->detailCode()
+                  .replace("'","''")
+                  .replace(QChar('\x0'), emptyStr);
+    float price = bill->price().toFloat();
+    QString customer  = bill->customer()
+                  .replace("'","''")
+                  .replace(QChar('\x0'), emptyStr);
+    QString comment  = bill->comment()
+                  .replace("'","''")
+                  .replace(QChar('\x0'), emptyStr);
     qint64 epochTimeDateCreated = bill->creationDateTime()
                                   .toMSecsSinceEpoch();
-    QString content = bill->content()
-                      .replace("'","''")
-                      .replace(QChar('\x0'), emptyStr);
-    QString fullTitle = bill->fullTitle()
-                        .replace("'","''")
-                        .replace(QChar('\x0'), emptyStr);
 
-    qint64 epochTimeDateLastModified = bill->lastModificationdateTime().isNull() ? epochTimeDateCreated :  bill->lastModificationdateTime().toMSecsSinceEpoch();
     // 参数-1表示不需要参数值传入
-    QString queryStr = QString("INSERT INTO active_bills (creation_date, modification_date, deletion_date, content, full_title) "
-                               "VALUES (%1, %2, -1, '%3', '%4');")
-                       .arg(epochTimeDateCreated)
-                       .arg(epochTimeDateLastModified)
-                       .arg(content)
-                       .arg(fullTitle);
+    QString queryStr = QString("INSERT INTO active_bills (no, variety, detail_code, price, customer, comment, creation_date) "
+                               "VALUES ('%1', '%2', '%3', %4, '%5', '%6', %7);")
+                        .arg(no)
+                        .arg(variety)
+                        .arg(detail_code)
+                        .arg(price)
+                        .arg(customer)
+                        .arg(comment)
+                        .arg(epochTimeDateCreated);
+
 
     query.exec(queryStr);
 
@@ -161,59 +220,38 @@ bool DBManager::removeBill(BillData* bill)
     query.exec(queryStr);
     bool removed = (query.numRowsAffected() == 1);
 
-    qint64 epochTimeDateCreated = bill->creationDateTime().toMSecsSinceEpoch();
-    qint64 epochTimeDateModified = bill->lastModificationdateTime().toMSecsSinceEpoch();
-    qint64 epochTimeDateDeleted = bill->deletionDateTime().toMSecsSinceEpoch();
-    QString content = bill->content()
-                      .replace("'","''")
-                      .replace(QChar('\x0'), emptyStr);
-    QString fullTitle = bill->fullTitle()
-                        .replace("'","''")
-                        .replace(QChar('\x0'), emptyStr);
+    return (removed);
+}
 
-    queryStr = QString("INSERT INTO deleted_bills "
-                       "VALUES (%1, %2, %3, %4, '%5', '%6');")
-               .arg(id)
-               .arg(epochTimeDateCreated)
-               .arg(epochTimeDateModified)
-               .arg(epochTimeDateDeleted)
-               .arg(content)
-               .arg(fullTitle);
+bool DBManager::removeBillsByCustomer(const QString &customer)
+{
+    QSqlQuery query;
 
+    QString queryStr = QStringLiteral("DELETE FROM active_bills "
+                                      "WHERE customer='%1'")
+                       .arg(customer);
     query.exec(queryStr);
-    bool addedToTrashDB = (query.numRowsAffected() == 1);
+    bool removed = (query.numRowsAffected() == 1);
 
-    return (removed && addedToTrashDB);
+    return (removed);
+}
+
+bool DBManager::removeBillsByNo(const QString &no)
+{
+    QSqlQuery query;
+
+    QString queryStr = QStringLiteral("DELETE FROM active_bills "
+                                      "WHERE no='%1'")
+                       .arg(no);
+    query.exec(queryStr);
+    bool removed = (query.numRowsAffected() == 1);
+
+    return (removed);
 }
 
 bool DBManager::permanantlyRemoveAllBills() {
     QSqlQuery query;
     return query.exec(QString("DELETE FROM active_bills"));
-}
-
-bool DBManager::modifyBill(BillData* bill)
-{
-    QSqlQuery query;
-    QString emptyStr;
-
-    int id = bill->id().split('_')[1].toInt();
-    qint64 epochTimeDateModified = bill->lastModificationdateTime().toMSecsSinceEpoch();
-    QString content = bill->content()
-                      .replace("'","''")
-                      .replace(QChar('\x0'), emptyStr);
-    QString fullTitle = bill->fullTitle()
-                        .replace("'","''")
-                        .replace(QChar('\x0'), emptyStr);
-
-    QString queryStr = QStringLiteral("UPDATE active_bills "
-                                      "SET modification_date=%1, content='%2', full_title='%3' "
-                                      "WHERE id=%4")
-                       .arg(epochTimeDateModified)
-                       .arg(content)
-                       .arg(fullTitle)
-                       .arg(id);
-    query.exec(queryStr);
-    return (query.numRowsAffected() == 1);
 }
 
 bool DBManager::migrateBill(BillData* bill)
@@ -223,51 +261,35 @@ bool DBManager::migrateBill(BillData* bill)
     QString emptyStr;
 
     int id = bill->id().split('_')[1].toInt();
-    qint64 epochTimeDateCreated = bill->creationDateTime().toMSecsSinceEpoch();
-    qint64 epochTimeDateModified = bill->lastModificationdateTime().toMSecsSinceEpoch();
-    QString content = bill->content()
-                      .replace("'","''")
-                      .replace(QChar('\x0'), emptyStr);
-    QString fullTitle = bill->fullTitle()
-                        .replace("'","''")
-                        .replace(QChar('\x0'), emptyStr);
+    QString no = bill->no()
+            .replace("'","''")
+            .replace(QChar('\x0'), emptyStr);
+    QString variety  = bill->variety()
+                  .replace("'","''")
+                  .replace(QChar('\x0'), emptyStr);
+    QString detail_code  = bill->detailCode()
+                  .replace("'","''")
+                  .replace(QChar('\x0'), emptyStr);
+    float price = bill->price().toFloat();
+    QString customer  = bill->customer()
+                  .replace("'","''")
+                  .replace(QChar('\x0'), emptyStr);
+    QString comment  = bill->comment()
+                  .replace("'","''")
+                  .replace(QChar('\x0'), emptyStr);
+    qint64 epochTimeDateCreated = bill->creationDateTime()
+                                  .toMSecsSinceEpoch();
 
     QString queryStr = QString("INSERT INTO active_bills "
-                               "VALUES (%1, %2, %3, -1, '%4', '%5');")
-                       .arg(id)
-                       .arg(epochTimeDateCreated)
-                       .arg(epochTimeDateModified)
-                       .arg(content)
-                       .arg(fullTitle);
-
-    query.exec(queryStr);
-    return (query.numRowsAffected() == 1);
-}
-
-bool DBManager::migrateTrash(BillData* bill)
-{
-    QSqlQuery query;
-    QString emptyStr;
-
-    int id = bill->id().split('_')[1].toInt();
-    qint64 epochTimeDateCreated = bill->creationDateTime().toMSecsSinceEpoch();
-    qint64 epochTimeDateModified = bill->lastModificationdateTime().toMSecsSinceEpoch();
-    qint64 epochTimeDateDeleted = bill->deletionDateTime().toMSecsSinceEpoch();
-    QString content = bill->content()
-                      .replace("'","''")
-                      .replace(QChar('\x0'), emptyStr);
-    QString fullTitle = bill->fullTitle()
-                        .replace("'","''")
-                        .replace(QChar('\x0'), emptyStr);
-
-    QString queryStr = QString("INSERT INTO deleted_bills "
-                       "VALUES (%1, %2, %3, %4, '%5', '%6');")
-               .arg(id)
-               .arg(epochTimeDateCreated)
-               .arg(epochTimeDateModified)
-               .arg(epochTimeDateDeleted)
-               .arg(content)
-               .arg(fullTitle);
+                               "VALUES (%1, '%2', '%3', %4, '%5', '%6', '%7', %8);")
+                        .arg(id)
+                        .arg(no)
+                        .arg(variety)
+                        .arg(detail_code)
+                        .arg(price)
+                        .arg(customer)
+                        .arg(comment)
+                        .arg(epochTimeDateCreated);
 
     query.exec(queryStr);
     return (query.numRowsAffected() == 1);

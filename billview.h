@@ -43,7 +43,10 @@ public slots:
 
 private slots:
     void init();
-
+    void onCurrentRowChanged(const QModelIndex & current, const QModelIndex & previous);
+    void onEntered(QModelIndex index);
+    void onViewportEntered();
+    void onRangeChanged(int min, int max);
 protected slots:
     void rowsInserted(const QModelIndex &parent, int start, int end) Q_DECL_OVERRIDE;
     void rowsAboutToBeRemoved(const QModelIndex &parent, int start, int end) Q_DECL_OVERRIDE;

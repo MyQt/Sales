@@ -1,4 +1,4 @@
-#ifndef SINGLEINSTANCE_H
+﻿#ifndef SINGLEINSTANCE_H
 #define SINGLEINSTANCE_H
 
 #include <QObject>
@@ -16,7 +16,8 @@ public:
 
 signals:
     void newInstance();
-
+private slots:
+    void onNewConnection();
 private:
     QLocalSocket* m_socket;
     QLocalServer m_server;

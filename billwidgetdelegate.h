@@ -61,7 +61,9 @@ private:
     QModelIndex m_animatedIndex;
     QModelIndex m_currentSelectedIndex;
     QModelIndex m_hoveredIndex;
-
+private slots:
+    void onFrameChanged();
+    void onFinished();
 signals:
     void update(const QModelIndex &index);
 };

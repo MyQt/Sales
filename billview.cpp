@@ -16,7 +16,6 @@ BillView::BillView(QWidget *parent)
       m_isMousePressed(false),
       m_rowHeight(38)
 {
-//    this->setAttribute(Qt::WA_MacShowFocusRect, 0);
 
     QTimer::singleShot(0, this, SLOT(init()));
 }
@@ -216,76 +215,86 @@ void BillView::setSearching(bool isSearching)
     m_isSearching = isSearching;
 }
 
+void BillView::onCurrentRowChanged(const QModelIndex &current, const QModelIndex &previous)
+{
+    if(model() != Q_NULLPTR){
+        if(current.row() < previous.row()){
+            if(current.row() > 0){
+                QModelIndex prevIndex = model()->index(current.row()-1, 0);
+                viewport()->update(visualRect(prevIndex));
+            }
+        }
+
+        if(current.row() > 1){
+            QModelIndex prevPrevIndex = model()->index(current.row()-2, 0);
+            viewport()->update(visualRect(prevPrevIndex));
+        }
+    }
+}
+
+void BillView::onEntered(QModelIndex index)
+{
+    if(model() != Q_NULLPTR){
+        if(index.row() > 1){
+            QModelIndex prevPrevIndex = model()->index(index.row()-2, 0);
+            viewport()->update(visualRect(prevPrevIndex));
+
+            QModelIndex prevIndex = model()->index(index.row()-1, 0);
+            viewport()->update(visualRect(prevIndex));
+
+        }else if(index.row() > 0){
+            QModelIndex prevIndex = model()->index(index.row()-1, 0);
+            viewport()->update(visualRect(prevIndex));
+        }
+
+        BillWidgetDelegate* delegate = static_cast<BillWidgetDelegate *>(itemDelegate());
+        if(delegate != Q_NULLPTR)
+            delegate->setHoveredIndex(index);
+    }
+}
+
+void BillView::onViewportEntered()
+{
+    if(model() != Q_NULLPTR && model()->rowCount() > 1){
+        BillWidgetDelegate* delegate = static_cast<BillWidgetDelegate *>(itemDelegate());
+        if(delegate != Q_NULLPTR)
+            delegate->setHoveredIndex(QModelIndex());
+
+        QModelIndex lastIndex = model()->index(model()->rowCount()-2, 0);
+        viewport()->update(visualRect(lastIndex));
+    }
+}
+
+void BillView::onRangeChanged(int min, int max)
+{
+    Q_UNUSED(min)
+
+    BillWidgetDelegate* delegate = static_cast<BillWidgetDelegate*>(itemDelegate());
+    if(delegate != Q_NULLPTR){
+        if(max > 0){
+            delegate->setRowRightOffset(2);
+        }else{
+            delegate->setRowRightOffset(0);
+        }
+        viewport()->update();
+    }
+}
+
 void BillView::setupSignalsSlots()
 {
     // remove/add separator
     // current selectected row changed
-    connect(selectionModel(), &QItemSelectionModel::currentRowChanged, [this]
-            (const QModelIndex & current, const QModelIndex & previous){
-
-        if(model() != Q_NULLPTR){
-            if(current.row() < previous.row()){
-                if(current.row() > 0){
-                    QModelIndex prevIndex = model()->index(current.row()-1, 0);
-                    viewport()->update(visualRect(prevIndex));
-                }
-            }
-
-            if(current.row() > 1){
-                QModelIndex prevPrevIndex = model()->index(current.row()-2, 0);
-                viewport()->update(visualRect(prevPrevIndex));
-            }
-        }
-    });
+    connect(selectionModel(), &QItemSelectionModel::currentRowChanged, this, &BillView::onCurrentRowChanged);
 
     // row was entered
-    connect(this, &BillView::entered,[this](QModelIndex index){
-        if(model() != Q_NULLPTR){
-            if(index.row() > 1){
-                QModelIndex prevPrevIndex = model()->index(index.row()-2, 0);
-                viewport()->update(visualRect(prevPrevIndex));
-
-                QModelIndex prevIndex = model()->index(index.row()-1, 0);
-                viewport()->update(visualRect(prevIndex));
-
-            }else if(index.row() > 0){
-                QModelIndex prevIndex = model()->index(index.row()-1, 0);
-                viewport()->update(visualRect(prevIndex));
-            }
-
-            BillWidgetDelegate* delegate = static_cast<BillWidgetDelegate *>(itemDelegate());
-            if(delegate != Q_NULLPTR)
-                delegate->setHoveredIndex(index);
-        }
-    });
+    connect(this, &BillView::entered, this, &BillView::onEntered);
 
     // viewport was entered
-    connect(this, &BillView::viewportEntered,[this](){
-        if(model() != Q_NULLPTR && model()->rowCount() > 1){
-            BillWidgetDelegate* delegate = static_cast<BillWidgetDelegate *>(itemDelegate());
-            if(delegate != Q_NULLPTR)
-                delegate->setHoveredIndex(QModelIndex());
-
-            QModelIndex lastIndex = model()->index(model()->rowCount()-2, 0);
-            viewport()->update(visualRect(lastIndex));
-        }
-    });
+    connect(this, &BillView::viewportEntered, this, &BillView::onViewportEntered);
 
 
     // remove/add offset right side
-    connect(this->verticalScrollBar(), &QScrollBar::rangeChanged,[this](int min, int max){
-        Q_UNUSED(min)
-
-        BillWidgetDelegate* delegate = static_cast<BillWidgetDelegate*>(itemDelegate());
-        if(delegate != Q_NULLPTR){
-            if(max > 0){
-                delegate->setRowRightOffset(2);
-            }else{
-                delegate->setRowRightOffset(0);
-            }
-            viewport()->update();
-        }
-    });
+    connect(this->verticalScrollBar(), &QScrollBar::rangeChanged, this, &BillView::onRangeChanged);
 }
 
 /**
