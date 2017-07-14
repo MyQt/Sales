@@ -25,12 +25,8 @@ MainWindow::MainWindow(QWidget *parent) :
     m_billCounter(0),
     m_trashCounter(0),
     m_layoutMargin(10),
-    m_billListWidth(200),
     m_canMoveWindow(false),
     m_canStretchWindow(false),
-    m_isTemp(false),
-    m_isListViewScrollBarHidden(true),
-    m_isContentModified(false),
     m_isOperationRunning(false)
 {
     ui->setupUi(this);
@@ -41,6 +37,7 @@ MainWindow::MainWindow(QWidget *parent) :
     setupSignalsSlots();
 
     setupTrayIcon();
+    loadBills();
 //    ui->billView->hide();
 }
 
@@ -52,8 +49,8 @@ MainWindow::~MainWindow()
 
 void MainWindow::setupLine()
 {
-    ui->lineLeft->setStyleSheet("border: 1px solid rgb(221, 221, 221)");
-    ui->lineLeft->setStyleSheet("border: 1px solid rgb(221, 221, 221)");
+//    ui->lineLeft->setStyleSheet("border: 1px solid rgb(221, 221, 221)");
+//    ui->lineLeft->setStyleSheet("border: 1px solid rgb(221, 221, 221)");
 }
 
 void MainWindow::setupLineEdit()
@@ -127,13 +124,6 @@ void MainWindow::onLineEditTextChanged (const QString &keyword)
 
             m_selectedBillBeforeSearchingInSource = m_proxyModel->mapToSource(m_currentSelectedBillProxy);
         }
-
-        if(m_currentSelectedBillProxy.isValid()
-                && m_isContentModified){
-
-            saveBillToDB(m_currentSelectedBillProxy);
-        }
-
          m_billView->setSearching(true);
 
         while(!m_searchQueue.isEmpty()){
@@ -176,7 +166,14 @@ QDateTime MainWindow::getQDateTime (QString date)
 
 void MainWindow::loadBills ()
 {
-    QList<BillData*> billList = m_dbManager->getAllBills();
+    QList<BillData*> billList;
+    if (ui->lineEdit->text().isEmpty())
+    {
+        billList = m_dbManager->getAllBills();
+    } else
+    {
+        billList = m_dbManager->getBillsByCustomer(ui->lineEdit->text());
+    }
 
     if(!billList.isEmpty()){
         m_billModel->addListBill(billList);
@@ -190,17 +187,17 @@ void MainWindow::setupSignalsSlots()
     // line edit text changed
     connect(ui->lineEdit, &QLineEdit::textChanged, this, &MainWindow::onLineEditTextChanged);
     // bill pressed
-    connect(m_billView, &BillView::pressed, this, &MainWindow::onBillPressed);
+    connect(m_billView, &BillsView::pressed, this, &MainWindow::onBillPressed);
     // billView viewport pressed
-    connect(m_billView, &BillView::viewportPressed, this, [this](){
+    connect(m_billView, &BillsView::viewportPressed, this, [this](){
         if(m_proxyModel->rowCount() > 1){
             QModelIndex indexInProxy = m_proxyModel->index(1, 0);
             selectBill(indexInProxy);
         }
     });
     // note model rows moved
-    connect(m_billModel, &BillModel::rowsAboutToBeMoved, m_billView, &BillView::rowsAboutToBeMoved);
-    connect(m_billModel, &BillModel::rowsMoved, m_billView, &BillView::rowsMoved);
+    connect(m_billModel, &BillModel::rowsAboutToBeMoved, m_billView, &BillsView::rowsAboutToBeMoved);
+    connect(m_billModel, &BillModel::rowsMoved, m_billView, &BillsView::rowsMoved);
     // clear button
     connect(m_clearButton, &QToolButton::clicked, this, &MainWindow::onClearButtonClicked);
     // Restore Notes Action
@@ -257,14 +254,16 @@ void MainWindow::setupDatabases ()
 
 void MainWindow::setupModelView()
 {
-    m_billView = static_cast<BillView*>(ui->billView);
+    m_billView = static_cast<BillsView*>(ui->tableBills);
     m_proxyModel->setSourceModel(m_billModel);
     m_proxyModel->setFilterKeyColumn(0);
     m_proxyModel->setFilterRole(BillModel::BillCustomer);
     m_proxyModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
 
-    m_billView->setItemDelegate(new BillWidgetDelegate(m_billView));
+//    m_billView->setItemDelegate(new BillWidgetDelegate(m_billView));
     m_billView->setModel(m_proxyModel);
+    m_billView->initHeaderView();
+
 }
 
 void MainWindow::setMainWindowVisibility(bool state)
@@ -336,28 +335,8 @@ void MainWindow::findBillsContain(const QString& keyword)
 
 void MainWindow::selectBill(const QModelIndex &billIndex)
 {
-    if(billIndex.isValid()){
-        // save the position of text edit scrollbar
-        if(!m_isTemp && m_currentSelectedBillProxy.isValid()){
-            //int pos = m_textEdit->verticalScrollBar()->value();
-//            QModelIndex indexSrc = m_proxyModel->mapToSource(m_currentSelectedNoteProxy);
-            //m_billModel->setData(indexSrc, QVariant::fromValue(pos), billModel::NoteScrollbarPos);
-        }
-
-        if(m_isTemp && billIndex.row() != 0){
-            // delete the unmodified new note
-            deleteBill(m_currentSelectedBillProxy, false);
-            m_currentSelectedBillProxy = m_proxyModel->index(billIndex.row()-1, 0);
-        }else if(!m_isTemp
-                 && m_currentSelectedBillProxy.isValid()
-                 && billIndex != m_currentSelectedBillProxy
-                 && m_isContentModified){
-            // save if the previous selected note was modified
-            saveBillToDB(m_currentSelectedBillProxy);
-            m_currentSelectedBillProxy = billIndex;
-        }else{
-            m_currentSelectedBillProxy = billIndex;
-        }
+    if(billIndex.isValid()){    
+        m_currentSelectedBillProxy = billIndex;
 
         m_billView->selectionModel()->select(m_currentSelectedBillProxy, QItemSelectionModel::ClearAndSelect);
         m_billView->setCurrentIndex(m_currentSelectedBillProxy);
@@ -379,30 +358,10 @@ void MainWindow::selectFirstBill()
     }
 }
 
-void MainWindow::moveBillToTop()
-{
-    // check if the current note is note on the top of the list
-    // if true move the note to the top
-    if(m_currentSelectedBillProxy.isValid()
-            && m_billView->currentIndex().row() != 0){
-
-        m_billView->scrollToTop();
-
-        // move the current selected note to the top
-        QModelIndex sourceIndex = m_proxyModel->mapToSource(m_currentSelectedBillProxy);
-        QModelIndex destinationIndex = m_billModel->index(0);
-        m_billModel->moveRow(sourceIndex, sourceIndex.row(), destinationIndex, 0);
-
-        // update the current item
-        m_currentSelectedBillProxy = m_proxyModel->mapFromSource(destinationIndex);
-        m_billView->setCurrentIndex(m_currentSelectedBillProxy);
-    }
-}
-
 
 void MainWindow::saveBillToDB(const QModelIndex &billIndex)
 {
-    if(billIndex.isValid() && m_isContentModified){
+    if(billIndex.isValid()){
         QModelIndex indexInSrc = m_proxyModel->mapToSource(billIndex);
         BillData* bill = m_billModel->getBill(indexInSrc);
         if(bill != Q_NULLPTR){
@@ -412,7 +371,6 @@ void MainWindow::saveBillToDB(const QModelIndex &billIndex)
             }
         }
 
-        m_isContentModified = false;
     }
 }
 
@@ -432,11 +390,7 @@ void MainWindow::deleteBill(const QModelIndex &billIndex, bool isFromUser)
         QModelIndex indexToBeRemoved = m_proxyModel->mapToSource(m_currentSelectedBillProxy);
         BillData* billTobeRemoved = m_billModel->removeBill(indexToBeRemoved);
 
-        if(m_isTemp){
-            m_isTemp = false;
-        }else{
-            QtConcurrent::run(m_dbManager, &DBManager::removeBill, billTobeRemoved);
-        }
+        QtConcurrent::run(m_dbManager, &DBManager::removeBill, billTobeRemoved);
 
         if(isFromUser){
 
@@ -456,6 +410,7 @@ void MainWindow::deleteBill(const QModelIndex &billIndex, bool isFromUser)
 
 void MainWindow::on_btnInsert_clicked()
 {
+
     m_newDlg->show();
 }
 
@@ -464,8 +419,7 @@ void MainWindow::createNewBill(QString no,
                                QString detail_code,
                                QString price,
                                QString customer,
-                               QString comment,
-                               QDateTime creationDateTime)
+                               QString comment)
 {
     if (!m_isOperationRunning)
     {
@@ -478,7 +432,8 @@ void MainWindow::createNewBill(QString no,
         pBillData->setPrice(price);
         pBillData->setCustomer(customer);
         pBillData->setComment(comment);
-        pBillData->setCreationDateTime(creationDateTime);
+        QDateTime billDate = QDateTime::currentDateTime();
+        pBillData->setCreationDateTime(billDate);
         m_billView->scrollToTop();
         ++m_billCounter;
         QModelIndex indexSrc = m_billModel->insertBill(pBillData, 0);

@@ -1,5 +1,5 @@
 ﻿#include "BillWidgetDelegate.h"
-#include "BillView.h"
+#include "BillsView.h"
 #include <QPainter>
 #include <QEvent>
 #include <QDebug>
@@ -161,7 +161,7 @@ void BillWidgetDelegate::paintBackground(QPainter *painter, const QStyleOptionVi
              && (index.row() !=  m_hoveredIndex.row() - 1)){
 
         painter->fillRect(option.rect, QBrush(m_defaultColor));
-        paintSeparator(painter, option, index);
+//        paintSeparator(painter, option, index);
     }
 }
 
@@ -239,19 +239,19 @@ void BillWidgetDelegate::paintLabels(QPainter* painter, const QStyleOptionViewIt
     drawStr(dateRectPosX, dateRectPosY, dateRectWidth, dateRectHeight, m_dateColor, m_dateFont, date);
 }
 
-void BillWidgetDelegate::paintSeparator(QPainter*painter, const QStyleOptionViewItem&option, const QModelIndex&index) const
-{
-    Q_UNUSED(index)
+//void BillWidgetDelegate::paintSeparator(QPainter*painter, const QStyleOptionViewItem&option, const QModelIndex&index) const
+//{
+//    Q_UNUSED(index)
 
-    painter->setPen(QPen(m_separatorColor));
-    const int leftOffsetX = 11;
-    int posX1 = option.rect.x() + leftOffsetX;
-    int posX2 = option.rect.x() + option.rect.width() - leftOffsetX - 1;
-    int posY = option.rect.y() + option.rect.height() - 1;
+//    painter->setPen(QPen(m_separatorColor));
+//    const int leftOffsetX = 11;
+//    int posX1 = option.rect.x() + leftOffsetX;
+//    int posX2 = option.rect.x() + option.rect.width() - leftOffsetX - 1;
+//    int posY = option.rect.y() + option.rect.height() - 1;
 
-    painter->drawLine(QPoint(posX1, posY),
-                      QPoint(posX2, posY));
-}
+//    painter->drawLine(QPoint(posX1, posY),
+//                      QPoint(posX2, posY));
+//}
 
 QString BillWidgetDelegate::parseDateTime(const QDateTime &dateTime) const
 {

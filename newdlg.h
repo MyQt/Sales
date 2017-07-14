@@ -23,8 +23,7 @@ signals:
     QString detail_code,
     QString price,
     QString customer,
-    QString comment,
-    QDateTime creationDateTime);
+    QString comment);
 private slots:
     void on_btnSure_clicked();
 

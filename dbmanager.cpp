@@ -41,7 +41,7 @@ bool DBManager::isBillExist(BillData* bill)
 {
     QSqlQuery query;
 
-    int id = bill->id().split('_')[1].toInt();
+    int id = bill->id().toInt();
     QString queryStr = QStringLiteral("SELECT EXISTS(SELECT 1 FROM active_bills WHERE id = %1 LIMIT 1 )")
                        .arg(id);
     query.exec(queryStr);
@@ -210,9 +210,8 @@ bool DBManager::addBill(BillData* bill)
 bool DBManager::removeBill(BillData* bill)
 {
     QSqlQuery query;
-    QString emptyStr;
 
-    int id = bill->id().split('_')[1].toInt();
+    int id = bill->id().toInt();
 
     QString queryStr = QStringLiteral("DELETE FROM active_bills "
                                       "WHERE id=%1")

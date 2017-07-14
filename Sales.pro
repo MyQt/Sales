@@ -31,21 +31,27 @@ SOURCES += \
         mainwindow.cpp \
     billdata.cpp \
     billmodel.cpp \
-    billview.cpp \
     billwidgetdelegate.cpp \
     dbmanager.cpp \
     singleinstance.cpp \
-    newdlg.cpp
+    newdlg.cpp \
+    HHeaderItemDelegate.cpp \
+    HHeaderModel.cpp \
+    HHeaderView.cpp \
+    billsview.cpp
 
 HEADERS += \
         mainwindow.h \
     billdata.h \
     billmodel.h \
-    billview.h \
     billwidgetdelegate.h \
     dbmanager.h \
     singleinstance.h \
-    newdlg.h
+    newdlg.h \
+    HHeaderItemDelegate.h \
+    HHeaderModel.h \
+    HHeaderView.h \
+    billsview.h
 
 FORMS += \
         mainwindow.ui \

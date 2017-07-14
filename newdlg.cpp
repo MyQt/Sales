@@ -25,18 +25,22 @@ void NewDlg::on_btnSure_clicked()
     // 传送给主窗口，添加表单
     BillData billData(0);
     billData.setNo(ui->editNo->text());
+    billData.setVariety(ui->editVariety->text());
     billData.setPrice(ui->editPrice->text());
     billData.setCustomer(ui->editCustomer->text());
     billData.setComment(ui->editComment->toPlainText());
     QString detailCode;
-    detailCode.append(ui->editCode1->text()).append(",");
-    detailCode.append(ui->editCode2->text()).append(",");
-    detailCode.append(ui->editCode3->text()).append(",");
-    detailCode.append(ui->editCode4->text()).append(",");
-    detailCode.append(ui->editCode5->text());
+    if (!ui->editCode1->text().isEmpty())
+        detailCode.append(ui->editCode1->text());
+    if (!ui->editCode2->text().isEmpty())
+        detailCode.append(",").append(ui->editCode2->text());
+    if (!ui->editCode3->text().isEmpty())
+        detailCode.append(",").append(ui->editCode3->text());
+    if (!ui->editCode4->text().isEmpty())
+        detailCode.append(",").append(ui->editCode4->text());
+    if (!ui->editCode5->text().isEmpty())
+        detailCode.append(",").append(ui->editCode5->text());
     billData.setdetailCode(detailCode);
-    QDateTime billDate = QDateTime::currentDateTime();
-    billData.setCreationDateTime(billDate);
     // 清空当前项
     ui->editNo->clear();
     ui->editVariety->clear();
@@ -51,7 +55,7 @@ void NewDlg::on_btnSure_clicked()
     
     emit newItem(billData.no(),billData.variety(),
                  billData.detailCode(), billData.price(), billData.customer(),
-                 billData.comment(), billData.creationDateTime());
+                 billData.comment());
 
     this->close();
 }

@@ -3,8 +3,7 @@
 
 BillData::BillData(QObject *parent)
     : QObject(parent),
-      m_isSelected(false),
-      m_scrollBarPosition(0)
+      m_isSelected(false)
 {
 
 }
@@ -49,6 +48,48 @@ void BillData::setdetailCode(const QString &detailCode)
     m_detail_code = detailCode;
 }
 
+QString BillData::childDetailCode(int nIndex) const
+{
+    if (nIndex < 0 || nIndex >= 5 || nIndex >= detailCodeNum()) return "";
+    QStringList myList = m_detail_code.split(",");
+
+    return myList[nIndex];
+}
+
+void BillData::setChildDetailCode(QString childCode)
+{
+    if (!childCode.isEmpty())
+        m_detail_code.append(childCode);
+    if (detailCodeNum() < 5)
+        m_detail_code.append(",");
+}
+
+int BillData::detailCodeNum() const
+{
+    int nNum = 0;
+    QStringList myList = m_detail_code.split(",");
+
+    return myList.count();
+}
+
+int BillData::billNum() const
+{
+    int num = 0;
+    QStringList myList = m_detail_code.split(",");
+    for (int i = 0; i < myList.size(); i++)
+    {
+        QString strDetailCode = myList[i];
+        num = num + strDetailCode.toInt();
+    }
+
+    return num;
+}
+
+float BillData::billPrice() const
+{
+    return (float)(price().toFloat()*billNum());
+}
+
 QString BillData::price() const
 {
     return m_price;
@@ -87,16 +128,6 @@ bool BillData::isSelected() const
 void BillData::setSelected(bool isSelected)
 {
     m_isSelected = isSelected;
-}
-
-int BillData::scrollBarPosition() const
-{
-    return m_scrollBarPosition;
-}
-
-void BillData::setScrollBarPosition(int scrollBarPosition)
-{
-    m_scrollBarPosition = scrollBarPosition;
 }
 
 QDateTime BillData::creationDateTime() const

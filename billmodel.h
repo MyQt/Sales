@@ -1,12 +1,13 @@
 ﻿#ifndef BillModel_H
 #define BillModel_H
 
-#include <QAbstractListModel>
+#include <QAbstractTableModel>
+#include <QString>
 #include "BillData.h"
 
-class BillModel : public QAbstractListModel
+class BillModel : public QAbstractTableModel
 {
-
+    Q_OBJECT
     friend class tst_BillModel;
 
 public:
@@ -19,8 +20,7 @@ public:
         BillPrice,
         BillCustomer,
         BillComment,
-        BillCreationDateTime,
-        BillScrollbarPos
+        BillCreationDateTime
     };
 
     explicit BillModel(QObject *parent = Q_NULLPTR);
@@ -39,13 +39,14 @@ public:
     void clearBills();
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
     bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) Q_DECL_OVERRIDE;
-    Qt::ItemFlags flags(const QModelIndex &index) const Q_DECL_OVERRIDE;
-    int rowCount(const QModelIndex &parent = QModelIndex()) const Q_DECL_OVERRIDE;
-    void sort(int column, Qt::SortOrder order) Q_DECL_OVERRIDE;
 
+    int rowCount(const QModelIndex &parent = QModelIndex()) const Q_DECL_OVERRIDE;
+    int columnCount(const QModelIndex &) const;
+
+    void sort(int column, Qt::SortOrder order) Q_DECL_OVERRIDE;
+    void print();
 private:
     QList<BillData *> m_billList;
-
 signals:
     void billRemoved();
 };

@@ -1,20 +1,21 @@
-﻿#ifndef BillView_H
-#define BillView_H
+﻿#ifndef BillsView_H
+#define BillsView_H
 
-#include <QListView>
 #include <QScrollArea>
+#include <QTableView>
 
-class BillView : public QListView
+class BillsView : public QTableView
 {
     Q_OBJECT
 
-    friend class tst_BillView;
+    friend class tst_BillsView;
 
 public:
-    explicit BillView(QWidget* parent = Q_NULLPTR);
-    ~BillView();
+    explicit BillsView(QWidget* parent = Q_NULLPTR);
+    ~BillsView();
 
-    void animateAddedRow(const QModelIndex &parent, int start, int end);
+    void initHeaderView();
+//    void animateAddedRow(const QModelIndex &parent, int start, int end);
     void setSearching(bool isSearching);
     void setCurrentRowActive(bool isActive);
 
@@ -26,10 +27,8 @@ protected:
     bool viewportEvent(QEvent* e) Q_DECL_OVERRIDE;
 
 private:
-    bool m_isScrollBarHidden;
     bool m_isSearching;
     bool m_isMousePressed;
-    int m_rowHeight;
 
     void setupSignalsSlots();
     void setupStyleSheet();
@@ -56,4 +55,4 @@ signals:
 
 };
 
-#endif // BillView_H
+#endif // BillsView_H

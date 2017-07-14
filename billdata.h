@@ -21,6 +21,11 @@ public:
     void setVariety(const QString &variety);
     QString detailCode() const;
     void setdetailCode(const QString &detailCode);
+    QString childDetailCode(int nIndex) const;
+    void setChildDetailCode(QString childCode);
+    int detailCodeNum() const; // 布匹明细码列数
+    int billNum() const; // 布匹数量
+    float billPrice() const; // 布匹金额
     QString price() const;
     void setPrice(const QString &price);
     QString customer() const;
@@ -32,9 +37,6 @@ public:
 
     bool isSelected() const;
     void setSelected(bool isSelected);
-
-    int scrollBarPosition() const;
-    void setScrollBarPosition(int scrollBarPosition);
 
     BillData& operator=(const BillData& billData);
 
@@ -48,7 +50,6 @@ private:
     QString m_comment; // 备注
     QDateTime m_creationDateTime;
     bool m_isSelected;
-    int m_scrollBarPosition;
 };
 QDataStream &operator<<(QDataStream &stream, const BillData* BillData);
 QDataStream &operator>>(QDataStream &stream, BillData *&BillData);
