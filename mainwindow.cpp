@@ -290,9 +290,9 @@ void MainWindow::setupModelView()
     m_proxyModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
 
 //    m_billView->setItemDelegate(new BillWidgetDelegate(m_billView));
-    m_billView->setModel(m_proxyModel);
+    m_billView->setModel(m_proxyModel);  
     m_billView->initHeaderView();
-
+    m_billView->setColumnHidden(12, true);
 }
 
 void MainWindow::setMainWindowVisibility(bool state)
