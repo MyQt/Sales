@@ -14,7 +14,7 @@ BillModel::~BillModel()
 
 QModelIndex BillModel::addBill(BillData* bill)
 {
-    const int rowCnt = rowCount();
+    int rowCnt = rowCount();
 
     int existedIndex = getExistedItem(bill);
     if (existedIndex != -1)
@@ -47,14 +47,15 @@ QModelIndex BillModel::addBill(BillData* bill)
         m_billList << bill;
         endInsertRows();
     }
-
+    rowCnt = rowCount();
     return createIndex(rowCnt, 0);
 }
 
 QModelIndex BillModel::insertBill(BillData *bill, int row)
 {
-    if(row >= rowCount()){
-        return addBill(bill);
+    if(row >= rowCount()-1){
+        m_billList.push_back(bill);
+        return QModelIndex();
     }else{
         beginInsertRows(QModelIndex(), row, row);
         m_billList.insert(row, bill);

@@ -199,7 +199,8 @@ void MainWindow::InsertComboxItem(QString customer)
 {
     int nIndex = ui->comboCustomer->findText(customer);
     if (nIndex == -1)
-        ui->comboCustomer->insertItem(0, customer);
+        ui->comboCustomer->insertItem(1, customer);
+        ui->comboCustomer->setCurrentIndex(1);
 }
 
 void MainWindow::RemoveComboxItem(QString customer)
