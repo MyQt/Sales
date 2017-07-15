@@ -51,7 +51,6 @@ private:
     QSortFilterProxyModel* m_proxyModel;
     QModelIndex m_currentSelectedBillProxy;
     QModelIndex m_selectedBillBeforeSearchingInSource;
-    QQueue<QString> m_searchQueue;
     DBManager* m_dbManager;
     int m_currentVerticalScrollAreaRange;
     int m_mousePressX;
@@ -81,7 +80,11 @@ private:
     void selectFirstBill();
     void saveBillToDB(const QModelIndex& billIndex);
     void removeBillFromDB(const QModelIndex& billIndex);
+    void removeBillByCustomer(const QString customer);
     void deleteBill(const QModelIndex& billIndex, bool isFromUser=true);
+    void InitCombox(); // 根据加载的所有清单项初始化combox
+    void InsertComboxItem(QString customer); // 添加新的客户到第一项
+    void RemoveComboxItem(QString customer); // 删除指定客户项
 private slots:
     void onClearButtonClicked();
     void createNewBill(QString no,
@@ -94,6 +97,8 @@ private slots:
     void onBillPressed(const QModelIndex &index);
     void QuitApplication();
 
+    void on_comboCustomer_currentIndexChanged(int index);
+    void on_comboCustomer_currentIndexChanged(const QString &arg1);
 };
 
 #endif // MAINWINDOW_H

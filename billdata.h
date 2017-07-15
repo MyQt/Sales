@@ -34,9 +34,25 @@ public:
     void setComment(const QString &comment);
     QDateTime creationDateTime() const;
     void setCreationDateTime(const QDateTime& creationDateTime);
-
+    bool isRepeated() const;
+    void setRepeated(bool isRepeated);
     bool isSelected() const;
     void setSelected(bool isSelected);
+
+    QString getTotalDetailCodeNum() const;
+    void setTotalDetailCodeNum(QString totalDetailCodeNum);
+    void addTotalDetailCodeNum(QString addNum);
+    void decTotalDetailCodeNum(QString decNum);
+
+    QString getTotalBillNum() const;
+    void setTotalBillNum(QString totalBillNum);
+    void addTotalBillNum(QString addNum);
+    void decTotalBillNum(QString decNum);
+
+    QString getTotalBillPrice() const;
+    void setTotalBillPrice(QString totalBillPrice);
+    void addTotalBillPrice(QString addPrice);
+    void decTotalBillPrice(QString decPrice);
 
     BillData& operator=(const BillData& billData);
 
@@ -50,6 +66,11 @@ private:
     QString m_comment; // 备注
     QDateTime m_creationDateTime;
     bool m_isSelected;
+    bool m_isRepeated; // 是否已经有同类的清单了(只有明细码不同)
+
+    QString m_totalDetailCodeNum; // 同编号，品种，客户的总件数
+    QString m_totalBillNum; // 同编号，品种，客户的总数量
+    QString m_totalBillPrice; // 同编号，品种客户的总金额
 };
 QDataStream &operator<<(QDataStream &stream, const BillData* BillData);
 QDataStream &operator>>(QDataStream &stream, BillData *&BillData);

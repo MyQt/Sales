@@ -15,9 +15,38 @@ BillModel::~BillModel()
 QModelIndex BillModel::addBill(BillData* bill)
 {
     const int rowCnt = rowCount();
-    beginInsertRows(QModelIndex(), rowCnt, rowCnt);
-    m_billList << bill;
-    endInsertRows();
+
+    int existedIndex = getExistedItem(bill);
+    if (existedIndex != -1)
+    {
+        // 加上该清单项客户编号品种的布匹的件数，数量，金额
+        BillData* pTarget = m_billList.at(existedIndex);
+
+        if (!pTarget->isRepeated())
+        {
+            QString detailCodeNum, billNum, billPrice;
+            detailCodeNum.setNum(bill->detailCodeNum());
+            billNum.setNum(bill->billNum());
+            billPrice.setNum(bill->billPrice(), 'f', 2);
+            pTarget->addTotalDetailCodeNum(detailCodeNum);
+            pTarget->addTotalBillNum(billNum);
+            pTarget->addTotalBillPrice(billPrice);
+        }
+
+        int lastExistedIndex = getLastExistedItem(bill);
+        insertBill(bill, lastExistedIndex);
+    } else {
+        QString detailCodeNum, billNum, billPrice;
+        detailCodeNum.setNum(bill->detailCodeNum());
+        billNum.setNum(bill->billNum());
+        billPrice.setNum(bill->billPrice(), 'f', 2);
+        bill->addTotalDetailCodeNum(detailCodeNum);
+        bill->addTotalBillNum(billNum);
+        bill->addTotalBillPrice(billPrice);
+        beginInsertRows(QModelIndex(), rowCnt, rowCnt);
+        m_billList << bill;
+        endInsertRows();
+    }
 
     return createIndex(rowCnt, 0);
 }
@@ -46,12 +75,10 @@ BillData* BillModel::getBill(const QModelIndex& index)
 
 void BillModel::addListBill(QList<BillData *> billList)
 {
-    int start = rowCount();
-    int end = start + billList.count()-1;
-    beginInsertRows(QModelIndex(), start, end);
-    m_billList << billList;
-
-    endInsertRows();
+    for (int i = 0; i < billList.size(); i++)
+    {
+        addBill(billList.at(i)) ;
+    }
 }
 
 BillData* BillModel::removeBill(const QModelIndex &billIndex)
@@ -60,7 +87,22 @@ BillData* BillModel::removeBill(const QModelIndex &billIndex)
     beginRemoveRows(QModelIndex(), row, row);
     BillData* bill = m_billList.takeAt(row);
     endRemoveRows();
-
+    // 减去该清单项客户编号品种的布匹的件数，数量，金额
+    for (int i = 0; i < m_billList.size(); i++)
+    {
+        BillData* pData = m_billList.at(i);
+        if (pData != Q_NULLPTR && !pData->isRepeated() && pData->no() == bill->no() && pData->variety() == bill->variety() && pData->customer() == bill->customer())
+        {
+            QString detailCodeNum, billNum, billPrice;
+            detailCodeNum.setNum(bill->detailCodeNum());
+            billNum.setNum(bill->billNum());
+            billPrice.setNum(bill->billPrice(), 'f', 2);
+            pData->decTotalDetailCodeNum(detailCodeNum);
+            pData->decTotalBillNum(billNum);
+            pData->decTotalBillPrice(billPrice);
+            break;
+        }
+    }
     return bill;
 }
 
@@ -105,10 +147,20 @@ QVariant BillModel::data(const QModelIndex &index, int role) const
       switch (index.column())
       {
         case 0:
-          return bill->no();
+        {
+            if (bill->isRepeated())
+                return "";
+            else
+                return bill->no();
+        }
           break;
         case 1:
-            return bill->variety();
+        {
+          if (bill->isRepeated())
+              return "";
+          else
+              return bill->variety();
+        }
         break;
 
         case 2:
@@ -127,15 +179,35 @@ QVariant BillModel::data(const QModelIndex &index, int role) const
           return bill->childDetailCode(4);
         break;
         case 7:
-          return bill->detailCodeNum();
+        {
+          if (bill->isRepeated())
+              return "";
+          else
+              return bill->getTotalDetailCodeNum();
+        }
         case 8:
-          return bill->billNum();
+        {
+          if (bill->isRepeated())
+              return "";
+          else
+              return bill->getTotalBillNum();
+        }
         break;
         case 9:
-          return bill->price();
+        {
+          if (bill->isRepeated())
+              return "";
+          else
+              return bill->price();
+        }
           break;
         case 10:
-          return bill->billPrice();
+        {
+          if (bill->isRepeated())
+              return "";
+          else
+              return bill->getTotalBillPrice();
+        }
           break;
         default:
           break;
@@ -245,7 +317,14 @@ void BillModel::sort(int column, Qt::SortOrder order)
     Q_UNUSED(order)
 
     std::stable_sort(m_billList.begin(), m_billList.end(), [](BillData* lhs, BillData* rhs){
-        return lhs->creationDateTime() > rhs->creationDateTime();
+        if (lhs->no() > rhs->no())
+            return true;
+        if (lhs->variety() > rhs->variety())
+            return true;
+        if (lhs->creationDateTime() > rhs->creationDateTime())
+            return true;
+
+        return false;
     });
 
     emit dataChanged(index(0,0), index(rowCount()-1, 9));
@@ -255,4 +334,45 @@ void BillModel::sort(int column, Qt::SortOrder order)
 void BillModel::print()
 {
     qDebug() << "打印\n";
+}
+
+int BillModel::getExistedItem(BillData *bill)
+{
+    int index = -1;
+    for (int i = 0; i < m_billList.size(); i++)
+    {
+        BillData* pData = m_billList.at(i);
+        if (pData != Q_NULLPTR)
+        {
+            if (bill->no() == pData->no() && bill->variety() == pData->variety() && bill->customer() == pData->customer())
+            {
+                bill->setRepeated(true);
+                index = i;
+                break;
+            }
+        }
+    }
+
+    return index;
+}
+
+int BillModel::getLastExistedItem(BillData *bill)
+{
+    int index = -1;
+    for (int i = 0; i < m_billList.size(); i++)
+    {
+        BillData* pData = m_billList.at(i);
+        if (pData != Q_NULLPTR)
+        {
+            if (bill->no() == pData->no() && bill->variety() == pData->variety() && bill->customer() == pData->customer())
+            {
+                index = i;
+            } else if (index != -1) // 该清单与目标不同且已经找到了，退出循环
+            {
+                break;
+            }
+        }
+    }
+
+    return index;
 }

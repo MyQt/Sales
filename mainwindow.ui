@@ -74,6 +74,13 @@
        </widget>
       </item>
       <item>
+       <widget class="QComboBox" name="comboCustomer">
+        <property name="currentText">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QToolButton" name="btnInsert">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">

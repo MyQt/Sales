@@ -38,6 +38,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     setupTrayIcon();
     loadBills();
+    InitCombox();
+
 //    ui->billView->hide();
 }
 
@@ -115,8 +117,6 @@ void MainWindow::setupTrayIcon()
 
 void MainWindow::onLineEditTextChanged (const QString &keyword)
 {
-    m_searchQueue.enqueue(keyword);
-
     if(!m_isOperationRunning){
         m_isOperationRunning = true;
         if(!m_selectedBillBeforeSearchingInSource.isValid()
@@ -124,21 +124,18 @@ void MainWindow::onLineEditTextChanged (const QString &keyword)
 
             m_selectedBillBeforeSearchingInSource = m_proxyModel->mapToSource(m_currentSelectedBillProxy);
         }
-         m_billView->setSearching(true);
+        m_billView->setSearching(true);
 
-        while(!m_searchQueue.isEmpty()){
-            qApp->processEvents();
-            QString str = m_searchQueue.dequeue();
-            if(str.isEmpty()){
-                m_billView->setFocusPolicy(Qt::StrongFocus);
-                clearSearch();
-                QModelIndex indexInProxy = m_proxyModel->mapFromSource(m_selectedBillBeforeSearchingInSource);
+        if(keyword.isEmpty()){
+            m_billView->setFocusPolicy(Qt::StrongFocus);
+            clearSearch();
+            QModelIndex indexInProxy = m_proxyModel->mapFromSource(m_selectedBillBeforeSearchingInSource);
+            if (indexInProxy.isValid())
                 selectBill(indexInProxy);
-                m_selectedBillBeforeSearchingInSource = QModelIndex();
-            }else{
-                m_billView->setFocusPolicy(Qt::NoFocus);
-                findBillsContain(str);
-            }
+            m_selectedBillBeforeSearchingInSource = QModelIndex();
+        }else{
+            m_billView->setFocusPolicy(Qt::NoFocus);
+            findBillsContain(keyword);
         }
 
         m_isOperationRunning = false;
@@ -179,6 +176,37 @@ void MainWindow::loadBills ()
         m_billModel->addListBill(billList);
         m_billModel->sort(0,Qt::AscendingOrder);
     }
+}
+
+void MainWindow::InitCombox()
+{
+    ui->comboCustomer->addItem("");
+    QList<BillData *> billList = m_billModel->getAllBills();
+    for (int i = 0; i < billList.size(); i++)
+    {
+        BillData* pData = billList.at(i);
+        if (pData != Q_NULLPTR)
+        {
+            int nIndex = ui->comboCustomer->findText(pData->customer());
+            if (nIndex == -1)
+                ui->comboCustomer->addItem(pData->customer());
+        }
+    }
+    ui->comboCustomer->setCurrentIndex(-1);
+}
+
+void MainWindow::InsertComboxItem(QString customer)
+{
+    int nIndex = ui->comboCustomer->findText(customer);
+    if (nIndex == -1)
+        ui->comboCustomer->insertItem(0, customer);
+}
+
+void MainWindow::RemoveComboxItem(QString customer)
+{
+    int nIndex = ui->comboCustomer->findText(customer);
+    if (nIndex != -1)
+        ui->comboCustomer->removeItem(nIndex);
 }
 
 void MainWindow::setupSignalsSlots()
@@ -248,7 +276,7 @@ void MainWindow::setupDatabases ()
     }
 
     m_dbManager = new DBManager(billDBFilePath, doCreate, this);
-    m_billCounter = m_dbManager->getLastRowID();
+    m_billCounter = m_dbManager->getLastRowID(); // 空提示没有合法记录，返回0
 }
 
 
@@ -383,6 +411,11 @@ void MainWindow::removeBillFromDB(const QModelIndex& billIndex)
     }
 }
 
+void MainWindow::removeBillByCustomer(const QString customer)
+{
+
+}
+
 void MainWindow::deleteBill(const QModelIndex &billIndex, bool isFromUser)
 {
     if(billIndex.isValid()){
@@ -410,7 +443,8 @@ void MainWindow::deleteBill(const QModelIndex &billIndex, bool isFromUser)
 
 void MainWindow::on_btnInsert_clicked()
 {
-
+    QString customer = ui->comboCustomer->currentText();
+    m_newDlg->init(m_billModel->getAllBills(), customer);
     m_newDlg->show();
 }
 
@@ -436,11 +470,31 @@ void MainWindow::createNewBill(QString no,
         pBillData->setCreationDateTime(billDate);
         m_billView->scrollToTop();
         ++m_billCounter;
-        QModelIndex indexSrc = m_billModel->insertBill(pBillData, 0);
+        QModelIndex indexSrc = m_billModel->addBill(pBillData);
         m_currentSelectedBillProxy = m_proxyModel->mapFromSource(indexSrc);
     }
     m_billView->setCurrentIndex(m_currentSelectedBillProxy);
     m_isOperationRunning = false;
     saveBillToDB(m_currentSelectedBillProxy);
     QMessageBox::critical(0, "创建表单", "表单创建成功", QMessageBox::Ok);
+    InsertComboxItem(customer);
+}
+
+void MainWindow::on_comboCustomer_currentIndexChanged(int index)
+{
+
+}
+
+void MainWindow::on_comboCustomer_currentIndexChanged(const QString &arg1)
+{
+    if (!arg1.isEmpty())
+    {
+        // 根据客户名筛选表项
+        QString customerText("客户名: ");
+        customerText.append(arg1);
+        ui->labelCustomer->setText(customerText);
+    } else
+    {
+        ui->labelCustomer->setText("");
+    }
 }

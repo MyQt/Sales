@@ -3,7 +3,8 @@
 
 BillData::BillData(QObject *parent)
     : QObject(parent),
-      m_isSelected(false)
+      m_isSelected(false),
+      m_isRepeated(false)
 {
 
 }
@@ -66,7 +67,6 @@ void BillData::setChildDetailCode(QString childCode)
 
 int BillData::detailCodeNum() const
 {
-    int nNum = 0;
     QStringList myList = m_detail_code.split(",");
 
     return myList.count();
@@ -140,6 +140,94 @@ void BillData::setCreationDateTime(const QDateTime&creationDateTime)
     m_creationDateTime = creationDateTime;
 }
 
+bool BillData::isRepeated() const
+{
+    return m_isRepeated;
+}
+
+void BillData::setRepeated(bool isRepeated)
+{
+    m_isRepeated = isRepeated;
+}
+
+QString BillData::getTotalDetailCodeNum() const
+{
+    return m_totalDetailCodeNum;
+}
+
+void BillData::setTotalDetailCodeNum(QString totalDetailCodeNum)
+{
+    m_totalDetailCodeNum = totalDetailCodeNum;
+}
+
+void BillData::addTotalDetailCodeNum(QString addNum)
+{
+    int nAdd = addNum.toInt();
+    int nTotalDetailCodeNum = m_totalDetailCodeNum.toInt();
+    nTotalDetailCodeNum += nAdd;
+    m_totalDetailCodeNum.setNum(nTotalDetailCodeNum);
+}
+
+void BillData::decTotalDetailCodeNum(QString decNum)
+{
+    int nDec = decNum.toInt();
+    int nTotalDetailCodeNum = m_totalDetailCodeNum.toInt();
+    nTotalDetailCodeNum -= nDec;
+    m_totalDetailCodeNum.setNum(nTotalDetailCodeNum);
+}
+
+QString BillData::getTotalBillNum() const
+{
+    return m_totalBillNum;
+}
+
+void BillData::setTotalBillNum(QString totalBillNum)
+{
+    m_totalBillNum = totalBillNum;
+}
+
+void BillData::addTotalBillNum(QString addNum)
+{
+    int nAdd = addNum.toInt();
+    int nTotalBillNum = m_totalBillNum.toInt();
+    nTotalBillNum += nAdd;
+    m_totalBillNum.setNum(nTotalBillNum);
+}
+
+void BillData::decTotalBillNum(QString decNum)
+{
+    int nDec = decNum.toInt();
+    int nTotalBillNum = m_totalBillNum.toInt();
+    nTotalBillNum -= nDec;
+    m_totalBillNum.setNum(nTotalBillNum);
+}
+
+QString BillData::getTotalBillPrice() const
+{
+    return m_totalBillPrice;
+}
+
+void BillData::setTotalBillPrice(QString totalBillPrice)
+{
+    m_totalBillPrice = totalBillPrice;
+}
+
+void BillData::addTotalBillPrice(QString addPrice)
+{
+    float fAdd = addPrice.toFloat();
+    float fTotalBillPrice = m_totalBillPrice.toFloat();
+    fTotalBillPrice += fAdd;
+    m_totalBillPrice.setNum(fTotalBillPrice, 'f', 2);
+}
+
+void BillData::decTotalBillPrice(QString decPrice)
+{
+    float fDec = decPrice.toFloat();
+    float fTotalBillPrice = m_totalBillPrice.toFloat();
+    fTotalBillPrice -= fDec;
+    m_totalBillPrice.setNum(fTotalBillPrice, 'f', 2);
+}
+
 BillData& BillData::operator=(const BillData& billData)
 {
     setId(billData.id());
@@ -150,25 +238,27 @@ BillData& BillData::operator=(const BillData& billData)
     setCustomer(billData.customer());
     setComment(billData.comment());
     setCreationDateTime(billData.creationDateTime());
+    setRepeated(billData.isRepeated());
 
     return *this;
 }
 
 QDataStream &operator<<(QDataStream &stream, const BillData* billData) {
-    return stream << billData->id() << billData->no() << billData->variety() << billData->detailCode() << billData->price() << billData->customer() << billData->comment() << billData->creationDateTime();
+    return stream << billData->id() << billData->no() << billData->variety() << billData->detailCode() << billData->price() << billData->customer() << billData->comment() << billData->creationDateTime() << billData->isRepeated();
 }
 
 QDataStream &operator>>(QDataStream &stream, BillData* &billData){
     billData = new BillData();
-    QString id;
-    QString number; // 编号
-    QString variety; // 品种
-    QString detail_code; // 明细码
-    QString price; // 单价
-    QString customer; // 客户
-    QString comment; // 备注
-    QDateTime creationDateTime;
-    stream >> id >> number >> variety >> detail_code >> price >> customer >> comment >> creationDateTime;
+    QString     id;
+    QString     number; // 编号
+    QString     variety; // 品种
+    QString     detail_code; // 明细码
+    QString     price; // 单价
+    QString     customer; // 客户
+    QString     comment; // 备注
+    QDateTime   creationDateTime;
+    bool        isRepeated;
+    stream >> id >> number >> variety >> detail_code >> price >> customer >> comment >> creationDateTime >> isRepeated;
     billData->setId(id);
     billData->setNo(number);
     billData->setVariety(variety);
@@ -177,6 +267,7 @@ QDataStream &operator>>(QDataStream &stream, BillData* &billData){
     billData->setCustomer(customer);
     billData->setComment(comment);
     billData->setCreationDateTime(creationDateTime);
+    billData->setRepeated(isRepeated);
 
     return stream;
 }

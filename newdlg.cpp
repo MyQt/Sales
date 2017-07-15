@@ -7,7 +7,6 @@ NewDlg::NewDlg(QWidget *parent) :
     ui(new Ui::NewDlg)
 {
     ui->setupUi(this);
-    init();
 }
 
 NewDlg::~NewDlg()
@@ -15,9 +14,46 @@ NewDlg::~NewDlg()
     delete ui;
 }
 
-void NewDlg::init()
+void NewDlg::init(QList<BillData *>& billlist, QString& customer)
 {
-    ui->editNo->setFocus();
+    m_billList.clear();
+    m_customer.clear();
+    ui->comboNo->clear();
+    if (!customer.isEmpty()) // 有客户时，客户固定,编号选择后,品种/单价固定，否则可自由输入
+    {
+        m_billList = billlist;
+        m_customer = customer;
+        ui->editCustomer->setText(customer);
+        ui->editCustomer->setFocusPolicy(Qt::NoFocus);
+        InitComboxItem();
+        ui->comboNo->show();
+    } else
+    {
+        ui->editCustomer->setFocusPolicy(Qt::StrongFocus);
+        ui->comboNo->hide();
+    }
+}
+
+void NewDlg::InitComboxItem()
+{
+    if (m_billList.isEmpty())
+    {
+        ui->comboNo->hide();
+        return;
+    }
+    ui->comboNo->addItem("");
+    for (int i = 0; i < m_billList.size(); i++)
+    {
+        BillData* pData = m_billList.at(i);
+        if (pData != Q_NULLPTR)
+        {
+            int index = ui->comboNo->findText(pData->no());
+            if (index == -1)
+            {
+                ui->comboNo->addItem(pData->no());
+            }
+        }
+    }
 }
 
 void NewDlg::on_btnSure_clicked()
@@ -58,4 +94,41 @@ void NewDlg::on_btnSure_clicked()
                  billData.comment());
 
     this->close();
+}
+
+void NewDlg::on_comboNo_currentIndexChanged(const QString &arg1)
+{
+    if (arg1.isEmpty())
+    {
+        ui->editVariety->setFocusPolicy(Qt::StrongFocus);
+        ui->editPrice->setFocusPolicy(Qt::StrongFocus);
+        ui->editNo->setFocusPolicy(Qt::StrongFocus);
+        return;
+    }
+    ui->editNo->setText(arg1);
+    ui->editNo->setFocusPolicy(Qt::NoFocus);
+    // 根据选定的编号，品种/单价固定
+    for (int i = 0; i < m_billList.size(); i++)
+    {
+        BillData* pData = m_billList.at(i);
+        if (pData != Q_NULLPTR)
+        {
+            if (arg1 == pData->no())
+            {
+                ui->editVariety->setText(pData->variety());
+                ui->editVariety->setFocusPolicy(Qt::NoFocus);
+                ui->editPrice->setText(pData->price());
+                ui->editPrice->setFocusPolicy(Qt::NoFocus);
+                break;
+            }
+        }
+    }
+}
+
+
+void NewDlg::closeEvent(QCloseEvent *event)
+{
+    m_billList.clear();
+    m_customer.clear();
+    ui->comboNo->clear();
 }

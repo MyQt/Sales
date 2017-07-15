@@ -120,7 +120,6 @@ void HHeaderView::paintEvent(QPaintEvent *event)
     QPainter painter(viewport());
     QMultiMap<int, int> rowSpanList;
 
-    int cnt = this->count ();
     int curRow, curCol;
     HHeaderModel* model = static_cast<HHeaderModel*> (this->model());
     for(int row = 0; row < model->rowCount(QModelIndex()); ++row)
@@ -319,17 +318,17 @@ void HHeaderView::mousePressEvent ( QMouseEvent * event )
     QHeaderView::mousePressEvent(event);
 }
 
-void HHeaderView::mouseReleaseEvent(QMouseEvent *event)
-{
-    m_pressIndex = QModelIndex();
+//void HHeaderView::mouseReleaseEvent(QMouseEvent *event)
+//{
+//    m_pressIndex = QModelIndex();
 
-    int row = indexAt(event->pos()).row();
-    int col = indexAt(event->pos()).column();  
-    //需要更新界面
-    viewport()->update();
+//    int row = indexAt(event->pos()).row();
+//    int col = indexAt(event->pos()).column();
+//    //需要更新界面
+//    viewport()->update();
 
-    QHeaderView::mouseReleaseEvent(event);
-}
+//    QHeaderView::mouseReleaseEvent(event);
+//}
 
 bool HHeaderView::event(QEvent* event )
 {

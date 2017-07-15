@@ -27,7 +27,6 @@ public:
     ~BillModel();
 
     QModelIndex addBill(BillData* bill);
-    QModelIndex insertBill(BillData* bill, int row);
     BillData* getBill(const QModelIndex& index);
     void addListBill(QList<BillData*> billList);
     BillData* removeBill(const QModelIndex& billIndex);
@@ -42,9 +41,13 @@ public:
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const Q_DECL_OVERRIDE;
     int columnCount(const QModelIndex &) const;
-
+    int getExistedItem(BillData* bill);
+    int getLastExistedItem(BillData* bill);
     void sort(int column, Qt::SortOrder order) Q_DECL_OVERRIDE;
     void print();
+    QList<BillData *>& getAllBills() { return m_billList; }
+private:
+    QModelIndex insertBill(BillData* bill, int row);
 private:
     QList<BillData *> m_billList;
 signals:
