@@ -46,6 +46,7 @@ public:
     void sort(int column, Qt::SortOrder order) Q_DECL_OVERRIDE;
     void print();
     QList<BillData *>& getAllBills() { return m_billList; }
+    QList<BillData *> getBillsByCustomer(QString& customer);
 private:
     QModelIndex insertBill(BillData* bill, int row);
 private:

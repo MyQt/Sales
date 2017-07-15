@@ -29,6 +29,7 @@ void NewDlg::init(QList<BillData *>& billlist, QString& customer)
         ui->comboNo->show();
     } else
     {
+        ui->editCustomer->clear();
         ui->editCustomer->setFocusPolicy(Qt::StrongFocus);
         ui->comboNo->hide();
     }

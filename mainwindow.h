@@ -83,7 +83,7 @@ private:
     void removeBillByCustomer(const QString customer);
     void deleteBill(const QModelIndex& billIndex, bool isFromUser=true);
     void InitCombox(); // 根据加载的所有清单项初始化combox
-    void InsertComboxItem(QString customer); // 添加新的客户到第一项
+    void InsertComboxItem(QString customer); // 添加新的客户到第二非空白项
     void RemoveComboxItem(QString customer); // 删除指定客户项
 private slots:
     void onClearButtonClicked();

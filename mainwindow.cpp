@@ -285,8 +285,8 @@ void MainWindow::setupModelView()
 {
     m_billView = static_cast<BillsView*>(ui->tableBills);
     m_proxyModel->setSourceModel(m_billModel);
-    m_proxyModel->setFilterKeyColumn(0);
-    m_proxyModel->setFilterRole(BillModel::BillCustomer);
+    m_proxyModel->setFilterKeyColumn(-1);
+    m_proxyModel->setFilterRole(Qt::DisplayRole);
     m_proxyModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
 
 //    m_billView->setItemDelegate(new BillWidgetDelegate(m_billView));

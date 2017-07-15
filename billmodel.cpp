@@ -135,7 +135,7 @@ QVariant BillModel::data(const QModelIndex &index, int role) const
 {
     if (!index.isValid() ||
             index.row() < 0 || index.row() >= m_billList.count() ||
-            index.column() < 0 || index.column() >= 11)
+            index.column() < 0 || index.column() >= 13)
     {
         return QVariant();
     }
@@ -210,6 +210,12 @@ QVariant BillModel::data(const QModelIndex &index, int role) const
               return bill->getTotalBillPrice();
         }
           break;
+        case 11:
+            return bill->comment();
+          break;
+        case 12:
+            return bill->customer();
+          break;
         default:
           break;
       }
@@ -264,6 +270,10 @@ bool BillModel::setData(const QModelIndex &index, const QVariant &value, int rol
           break;
         case 9:
             bill->setPrice(value.toString());
+        case 11:
+            bill->setComment(value.toString());
+        case 12:
+            bill->setCustomer(value.toString());
           break;
         default:
           break;
@@ -310,7 +320,7 @@ int BillModel::rowCount(const QModelIndex &parent) const
 
 int BillModel::columnCount(const QModelIndex &) const
 {
-    return 11;
+    return 13;
 }
 void BillModel::sort(int column, Qt::SortOrder order)
 {
@@ -376,4 +386,18 @@ int BillModel::getLastExistedItem(BillData *bill)
     }
 
     return index;
+}
+
+QList<BillData *> BillModel::getBillsByCustomer(QString& customer)
+{
+    QList<BillData *> billList;
+    billList.clear();
+    for (int i = 0; i < m_billList.size(); i++)\
+    {
+        BillData* billData = m_billList.at(i);
+        if (billData != Q_NULLPTR && customer == billData->customer())
+            billList.push_back(billData);
+    }
+
+    return billList;
 }

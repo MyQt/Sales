@@ -50,6 +50,8 @@ void HHeaderView::initHeaderView(HHeaderModel *pModel)
     pModel->setItem(0,8, "数量");
     pModel->setItem(0,9, "单价");
     pModel->setItem(0,10, "金额");
+    pModel->setItem(0,11, "备注");
+    pModel->setItem(0,12, "客户");
 
     pModel->setItem(1,2, "");
     pModel->setItem(1,3, "");
