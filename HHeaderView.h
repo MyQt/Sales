@@ -33,8 +33,8 @@ protected:
     virtual void paintEvent(QPaintEvent *event);
     //virtual int sectionSizeHint(int logicalIndex);
 
-    virtual void mouseMoveEvent(QMouseEvent *event);
-    virtual bool event ( QEvent * event );
+//    virtual void mouseMoveEvent(QMouseEvent *event);
+//    virtual bool event ( QEvent * event );
     virtual void mousePressEvent ( QMouseEvent * event );
 //    virtual void mouseReleaseEvent(QMouseEvent *event);
 

@@ -21,12 +21,11 @@ HHeaderView::HHeaderView(Qt::Orientation orientation, QWidget * parent) : QHeade
     connect(this, SIGNAL(sectionResized(int,int,int)), this, SLOT(onSectionResized(int,int,int)));
     //! 交互式，代表支持鼠标拖动
     setSectionResizeMode(QHeaderView::Stretch);
-    setCascadingSectionResizes(true);
 
     this->setOffset(0);    //! 这将会影响item绘制的位置
-    setSectionsClickable(true);
+    setSectionsClickable(false);
     setHighlightSections(false);
-    setMouseTracking(false);
+    setMouseTracking(false); 
 
     setAttribute(Qt::WA_Hover, false);
 }
@@ -71,7 +70,20 @@ void HHeaderView::initHeaderView(HHeaderModel *pModel)
 void HHeaderView::setSectionSize(HHeaderModel *pModel, int width)
 {
     int nColWdth = width / pModel->getColumnCount();
-    setDefaultSectionSize(nColWdth);
+    setDefaultSectionSize(170);
+    resizeSection(0, 140);
+    resizeSection(1, nColWdth*2);
+    resizeSection(2, nColWdth);
+    resizeSection(3, nColWdth);
+    resizeSection(4, nColWdth);
+    resizeSection(5, nColWdth);
+    resizeSection(6, nColWdth);
+    resizeSection(7, nColWdth*2);
+    resizeSection(8, nColWdth*2);
+    resizeSection(9, nColWdth*2);
+    resizeSection(10, nColWdth*2);
+    resizeSection(11, nColWdth*2);
+    resizeSection(12, nColWdth*7);
 }
 
 void HHeaderView::setQuit()
@@ -148,7 +160,6 @@ void HHeaderView::paintEvent(QPaintEvent *event)
             if(m_hoverIndex == model->index(row, col, QModelIndex()))
             {
                 header_opt.state |= QStyle::State_MouseOver;
-               // header_opt.state |= QStyle::State_Active;
             }
 
             //! 获取某个cell要显示的文本
@@ -166,9 +177,6 @@ void HHeaderView::paintEvent(QPaintEvent *event)
             {
                 //! 单元格跨越多列和多行, 不支持，改为多行1列
                 continue;
-                /*header_opt.rect = QRect(sectionViewportPosition(logicalIndex(col)), row * size.height(), sectionSizes(col, columnSpan), rowSpan * size.height());
-                opt.rect = header_opt.rect;
-                col += columnSpan - 1; */
             }
             else if(columnSpan > 1)
             {
@@ -296,28 +304,28 @@ QModelIndex HHeaderView::indexAt(const QPoint& pos) const
     return QModelIndex();
 }
 
-void HHeaderView::mouseMoveEvent(QMouseEvent *event)
-{
-    QHeaderView::mouseMoveEvent(event);
-    QModelIndex index = indexAt(event->pos());
-    if (!index.isValid())
-    {
-        QHeaderView::mouseMoveEvent(event);
-        return;
-    }
+//void HHeaderView::mouseMoveEvent(QMouseEvent *event)
+//{
+//    QHeaderView::mouseMoveEvent(event);
+//    QModelIndex index = indexAt(event->pos());
+//    if (!index.isValid())
+//    {
+//        QHeaderView::mouseMoveEvent(event);
+//        return;
+//    }
 
-    //保存当前hover的index
-    m_hoverIndex = index;
+//    //保存当前hover的index
+//    m_hoverIndex = index;
     
-    viewport()->update();
-    QHeaderView::mouseMoveEvent(event);
-}
+//    viewport()->update();
+//    QHeaderView::mouseMoveEvent(event);
+//}
 
 void HHeaderView::mousePressEvent ( QMouseEvent * event )
 {
-    m_pressIndex = indexAt(event->pos());
-    viewport()->update();
-    QHeaderView::mousePressEvent(event);
+//      m_pressIndex = indexAt(event->pos());
+//      viewport()->update();
+      QHeaderView::mousePressEvent(event);
 }
 
 //void HHeaderView::mouseReleaseEvent(QMouseEvent *event)
@@ -332,16 +340,16 @@ void HHeaderView::mousePressEvent ( QMouseEvent * event )
 //    QHeaderView::mouseReleaseEvent(event);
 //}
 
-bool HHeaderView::event(QEvent* event )
-{
-    if (event->type() == QEvent::Leave)
-    {//处理离开headerview时，取消hover状态
-        m_hoverIndex = QModelIndex();
-        viewport()->update(); //这里需要update，要不界面不更新
-    }
+//bool HHeaderView::event(QEvent* event )
+//{
+//    if (event->type() == QEvent::Leave)
+//    {//处理离开headerview时，取消hover状态
+//        m_hoverIndex = QModelIndex();
+//        viewport()->update(); //这里需要update，要不界面不更新
+//    }
 
-    return true;
-}
+//    return true;
+//}
 
 bool HHeaderView::isItemPress(int row, int col)
 {

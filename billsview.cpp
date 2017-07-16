@@ -21,7 +21,6 @@ BillsView::BillsView(QWidget *parent)
     QTimer::singleShot(0, this, SLOT(init()));
     setSelectionBehavior(QAbstractItemView::SelectRows);
     setEditTriggers(QAbstractItemView::NoEditTriggers);
-
 }
 
 BillsView::~BillsView()
@@ -36,13 +35,13 @@ void BillsView::initHeaderView()
    //! 初始化表格，这个表格我只自定义横向表头，纵向不管
    HHeaderView *pHeadView = new HHeaderView(Qt::Horizontal);
    HHeaderModel *pHeadModel = new HHeaderModel();
-
    pHeadView->initHeaderView(pHeadModel);
-   pHeadView->setSectionSize(pHeadModel, width());
    pHeadView->setModel(pHeadModel);
    setHorizontalHeader(pHeadView);
-   QTableView::verticalHeader()->hide();
 
+   pHeadView->setSectionSize(pHeadModel, width());
+
+   QTableView::verticalHeader()->hide();
 }
 
 //void BillsView::animateAddedRow(const QModelIndex& parent, int start, int end)

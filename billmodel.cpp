@@ -14,7 +14,7 @@ BillModel::~BillModel()
 
 QModelIndex BillModel::addBill(BillData* bill)
 {
-    int rowCnt = rowCount();
+    const int rowCnt = rowCount();
 
     int existedIndex = getExistedItem(bill);
     if (existedIndex != -1)
@@ -34,7 +34,7 @@ QModelIndex BillModel::addBill(BillData* bill)
         }
 
         int lastExistedIndex = getLastExistedItem(bill);
-        insertBill(bill, lastExistedIndex);
+        return insertBill(bill, lastExistedIndex+1);
     } else {
         QString detailCodeNum, billNum, billPrice;
         detailCodeNum.setNum(bill->detailCodeNum());
@@ -47,15 +47,15 @@ QModelIndex BillModel::addBill(BillData* bill)
         m_billList << bill;
         endInsertRows();
     }
-    rowCnt = rowCount();
     return createIndex(rowCnt, 0);
 }
 
 QModelIndex BillModel::insertBill(BillData *bill, int row)
 {
-    if(row >= rowCount()-1){
-        m_billList.push_back(bill);
-        return QModelIndex();
+    if(row >= rowCount()){
+        beginInsertRows(QModelIndex(), row, row);
+        m_billList << bill;
+        endInsertRows();
     }else{
         beginInsertRows(QModelIndex(), row, row);
         m_billList.insert(row, bill);
@@ -328,11 +328,11 @@ void BillModel::sort(int column, Qt::SortOrder order)
     Q_UNUSED(order)
 
     std::stable_sort(m_billList.begin(), m_billList.end(), [](BillData* lhs, BillData* rhs){
-        if (lhs->no() > rhs->no())
+        if (lhs->no() < rhs->no())
             return true;
-        if (lhs->variety() > rhs->variety())
+        if (lhs->variety() < rhs->variety())
             return true;
-        if (lhs->creationDateTime() > rhs->creationDateTime())
+        if (lhs->creationDateTime() < rhs->creationDateTime())
             return true;
 
         return false;
