@@ -3,7 +3,7 @@
 
 #include <QScrollArea>
 #include <QTableView>
-
+#include <QPrinter>
 class BillsView : public QTableView
 {
     Q_OBJECT
@@ -39,7 +39,8 @@ public slots:
 
     void rowsMoved(const QModelIndex &parent, int start, int end,
                    const QModelIndex &destination, int row);
-
+public Q_SLOTS:
+    void print(QPrinter *printer);
 private slots:
     void init();
     void onCurrentRowChanged(const QModelIndex & current, const QModelIndex & previous);

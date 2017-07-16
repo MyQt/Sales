@@ -4,6 +4,10 @@
 #include <QtConcurrent>
 #include <QDebug>
 #include <QMessageBox>
+#include <QPrintDialog>
+#include <QPrintPreviewDialog>
+#include <QPainter>
+#include <QTextDocument>
 
 #pragma execution_character_set("utf-8")
 
@@ -22,6 +26,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_deletedBillsModel(new BillModel(this)),
     m_proxyModel(new QSortFilterProxyModel(this)),
     m_dbManager(Q_NULLPTR),
+    m_printer(new QPrinter(QPrinter::HighResolution)),
     m_billCounter(0),
     m_trashCounter(0),
     m_layoutMargin(10),
@@ -30,6 +35,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_isOperationRunning(false)
 {
     ui->setupUi(this);
+    grid=TDPreviewDialog::NoGrid;
     setupLine();
     setupLineEdit();
     setupDatabases();
@@ -47,6 +53,7 @@ MainWindow::~MainWindow()
 {
     delete ui;
     delete m_newDlg;
+    delete m_printer;
 }
 
 void MainWindow::setupLine()
@@ -469,7 +476,6 @@ void MainWindow::createNewBill(QString no,
         pBillData->setComment(comment);
         QDateTime billDate = QDateTime::currentDateTime();
         pBillData->setCreationDateTime(billDate);
-        m_billView->scrollToTop();
         ++m_billCounter;
         QModelIndex indexSrc = m_billModel->addBill(pBillData);
         m_currentSelectedBillProxy = m_proxyModel->mapFromSource(indexSrc);
@@ -499,3 +505,459 @@ void MainWindow::on_comboCustomer_currentIndexChanged(const QString &arg1)
         ui->labelCustomer->setText("");
     }
 }
+
+void MainWindow::print()   //printFlag =2 , 打印预览
+{
+    QPrinter printer(QPrinter::ScreenResolution);
+    QPrintPreviewDialog preview(&printer, this);
+    preview.setMinimumSize(942,524);
+    connect(&preview, SIGNAL(paintRequested(QPrinter *)),this, SLOT(printTable(QPrinter *)));
+    preview.exec();
+}
+
+void MainWindow::printTable(QPrinter *printer)
+{
+    QString strStream,strTitle;
+    QTextStream out(&strStream);
+    strTitle="清单打印";
+    const int rowCount = ui->tableBills->model()->rowCount();
+    const int columnCount = ui->tableBills->model()->columnCount();
+    out <<  "<html>\n"
+            "<head>\n"
+            "<meta Content=\"Textml; charset=Windows-1251\">\n"
+         <<  QString("<title>%1</title>\n").arg(strTitle)
+          <<  "</head>\n"
+              "<body bgcolor=#ffffff link=#5000A0>\n"
+              "<table border=1 cellspacing=0 cellpadding=2>\n";
+    // headers
+    out << "<thead><tr bgcolor=#f0f0f0>";
+    for (int column = 0; column < columnCount; ++column)
+        if (!ui->tableBills->isColumnHidden(column))
+            out << QString("<th>%1</th>").arg(ui->tableBills->model()->headerData(column, Qt::Horizontal).toString());
+    out << "</tr></thead>\n";
+    // data table
+    for (int row = 0; row < rowCount; ++row)
+    {
+        out << "<tr>";
+        for (int column = 0; column < columnCount; ++column)
+        {
+            if (!ui->tableBills->isColumnHidden(column)) {
+                QString data = ui->tableBills->model()->data(ui->tableBills->model()->index(row, column)).toString().simplified();
+                out << QString("<td bkcolor=0>%1</td>").arg((!data.isEmpty()) ? data : QString("&nbsp;"));
+            }
+        }
+        out << "</tr>\n";
+    }
+    out <<  "</table>\n"
+            "</body>\n"
+            "<ml>\n";
+    QTextDocument *document = new QTextDocument();
+    document->setHtml(strStream);
+    document->print(printer);
+}
+
+void MainWindow::on_btnPreview_clicked()
+{
+    TDPreviewDialog *dialog = new TDPreviewDialog(m_billView,m_printer,this);
+    dialog->setGridMode(grid);
+    dialog->exec();
+    //do printing here...
+    //...
+    delete dialog;
+//    print();
+}
+
+void MainWindow::on_btnPrint_clicked()
+{
+    TDPreviewDialog *dialog = new TDPreviewDialog(m_billView,m_printer,this);
+    dialog->setGridMode(grid);
+    dialog->print();
+    delete dialog;
+}
+
+//double totalWidth = 0.0;
+//double totalHeight = 0.0;
+//double totalPageHeight=0.0;
+
+//int rows = view->model()->rowCount();   //行总数
+//const int cols = view->model()->columnCount(); //列总数
+
+//for (int c = 0; c < cols; ++c)  //求出列宽
+//{
+//    totalWidth += view->columnWidth(c);
+//}
+
+//for (int r = 0; r < rows; ++r) //求出行宽
+//{
+//    totalHeight += view->rowHeight(r);
+//}
+
+//QPainter painter(printer);
+//painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
+//painter.begin(printer);
+//QRect area = printer->paperRect();// paperRect();
+//QVector<int> startRow;
+//QVector<int> endRow;
+//int iCount = 0;
+//qreal left,top,right,bottom;
+//printer->getPageMargins(&left,&top,&right,&bottom,QPrinter::Point);
+////cout << "left = " << left << ", right = " << right << ", top = " << top << ", bottom = " << bottom << endl;
+//area.setHeight( int(area.height() - top - bottom) );
+//area.setWidth( int(area.width() - left - right) );
+
+//for (int p=0; p < rows; p++) //rows中保存了所有的行数 ， 找出每次打印的开始行和结束行
+//{
+//    totalPageHeight += view->rowHeight(p); //求出所有的列高度
+//    int pageFooter = 50 ;  //页脚的高度
+//    int pageHeader = 50;   //页眉的高度
+
+//    /*首页的曲线打印
+//    if (startRow.size() == 0)
+//    {
+//        pageFooter = 50 ;
+//        pageHeader = 500;
+//    }
+//    */
+//    if ((totalPageHeight >= (area.height() - pageFooter - pageHeader)) || (p == rows -1))  //如果目前累加列的高度大于或者等于可用页面高度 || 到达最后一行
+//    {
+//        totalPageHeight = view->rowHeight(p);
+//        if (p == rows -1)
+//        {
+//            if (p - iCount - 2 < 0)
+//            {
+//                startRow.push_back(0);
+//            }
+//            else
+//            {
+//                startRow.push_back(p - iCount - 1); //p - iCount - 2
+//            }
+//            endRow.push_back(p);
+//            //cout << startRow.at(startRow.size() - 1) << " " << endRow.at(endRow.size() - 1) << endl;
+//        }
+//        else
+//        {
+//            if (p - iCount - 2 < 0)
+//            {
+//                startRow.push_back(0);
+//                endRow.push_back(p - 2);
+//            }
+//            else
+//            {
+//                startRow.push_back(p - iCount - 1);
+//                endRow.push_back(p - 2); // p - 3
+//            }
+//            //cout << startRow.at(startRow.size() - 1) << " " << endRow.at(endRow.size() - 1) << endl;
+//        }
+//        iCount = 0;
+//    }
+//    iCount++;
+//}
+
+//QTableWidget *printTable = new QTableWidget();
+////printTable->horizontalHeader()->setResizeMode(QHeaderView::ResizeToContents);
+////printTable->horizontalHeader()->setDefaultAlignment(Qt::AlignCenter);
+////printTable->verticalHeader()->setResizeMode(QHeaderView::ResizeToContents);
+////printTable->verticalHeader()->setDefaultAlignment(Qt::AlignCenter);
+//const double xscale = area.width() / totalWidth;
+//const double yscale = area.height() / totalHeight;
+////const double pscale = area.height() / totalPageHeight;
+////painter.scale(xscale , yscale); // With the scaling 3 It is Printing all
+////painter.translate(area.x() + xscale, area.y() + pscale); //This is original
+//painter.translate(area.x() + xscale, area.y() + yscale);
+////painter.save(); //commented
+////int y=0 ;// This is introduced for the columns
+////view->paintEvent(&event);
+////QPainter paint(this);
+////paint.setPen(Qt::red);
+////paint.drawRect(0, 0, 0, 0);
+//QStyleOptionViewItem option;
+//QPen pen;
+//pen.setColor(Qt::black);
+//pen.setWidth(1);
+//painter.setPen(pen);
+
+//int irowcount = -1;
+//float rate = 1;
+//for(int ipage = 0; ipage < startRow.size();ipage++)  //startRow有大，就有多少页需要打印
+//{
+//    printTable->setColumnCount(view->columnCount() + 1);  //打印的列数为view的列数
+//    printTable->setRowCount(endRow[ipage] - startRow[ipage] +2);  //设置当前打印页的行数
+
+//    for(int c = 1;c < cols + 1;c++)
+//    {
+//        printTable->setColumnWidth( c,(view->columnWidth(c - 1)) );
+//        QTableWidgetItem *newItem = printTable->item(0,c);
+//        if (!newItem)  //如果printTable的首行不存在，添加文字或者序号
+//        {
+//            if (view->horizontalHeaderItem(c - 1)) //Returns the horizontal(水平的) header item for column
+//                newItem = new QTableWidgetItem(view->horizontalHeaderItem(c - 1)->text());
+//            else
+//                newItem = new QTableWidgetItem(QString::number(c));
+//            printTable->setItem(0,c ,newItem);
+//        }
+//        else    //否则，直接设置文字或者序号
+//        {
+//            if (view->horizontalHeaderItem(c - 1))
+//                newItem->setText(view->horizontalHeaderItem(c - 1)->text());
+//            else
+//                newItem->setText(QString::number(c));
+//        }
+//        //printTable->verticalHeader()->hide();
+//        //printTable->horizontalHeader()->hide();
+//    }
+
+///////////////////////////求出合适的比率，用来完美表格的显示
+//    QRect firstTable , lastTable;
+//    QModelIndex firstIndex = printTable->model()->index(0,0);
+//    QModelIndex lastIndex = printTable->model()->index(0,cols);
+//    firstTable = printTable->visualRect(firstIndex);
+//    lastTable =  printTable->visualRect(lastIndex);
+//    float totalTableWidth = lastTable.topRight().x() - firstTable.topLeft().x();
+//    float pagerWidth = printer->paperRect().width() - 20 - 20;
+//    rate = totalTableWidth/pagerWidth;
+//    //cout << "totalTableWidth = " << totalTableWidth << ", pagerWidth = " << pagerWidth << ", rate = " << rate << endl;
+///////////////////////////求出合适的比率，用来完美表格的显示
+
+//    for(int c = 1;c < cols + 1;c++)  //重设宽度
+//    {
+//        printTable->setColumnWidth( c,int((view->columnWidth(c - 1))/rate) );
+//    }
+//    printTable->setColumnWidth(0,view->verticalHeader()->width());  //Returns the table view's vertical header.
+//    int iRow = 0;
+//    for(int ir = startRow[ipage]; ir <= endRow[ipage];ir++) //ir变量用来标识当前打印的是哪些行，设置当前打印页的首行
+//    {
+//        printTable->setRowHeight(iRow,view->rowHeight(ir));  //Sets the height of the given row to be height.
+//        for(int ic = 0; ic < view->columnCount(); ic++)  //设置每个单元格的内容
+//        {
+//            QTableWidgetItem *newItem = printTable->item(iRow  + 1,ic + 1);
+//            if (!newItem)
+//            {
+//                if (view->item(ir,ic))
+//                    newItem = new QTableWidgetItem(view->item(ir,ic)->text());
+//                else
+//                    newItem = new QTableWidgetItem("");
+//                printTable->setItem(iRow + 1,ic + 1,newItem);
+//            }
+//            else
+//            {
+//                if (view->item(ir,ic))
+//                    newItem->setText(view->item(ir,ic)->text());
+//                else
+//                    newItem->setText("");
+//            }
+//        }
+//        iRow++;
+//    }
+//    qreal ioffx = (area.width() - totalWidth)/2;
+//    qreal ioffy = 50;
+//   /*首页的曲线打印
+//    if (ipage == 0)
+//    {
+//        ioffy = 500;
+//        QwtPlotPrintFilter filter;
+//        int options = QwtPlotPrintFilter::PrintAll;
+//        options &= ~QwtPlotPrintFilter::PrintBackground;
+//        options |= QwtPlotPrintFilter::PrintFrameWithScales;
+//        filter.setOptions(options);
+//        d_plot->print(&painter,QRect(50,65,650,400),filter);
+
+//    }
+//    */
+//    rows = printTable->rowCount();
+//    iRow = 1;
+//    for(int ir = startRow[ipage] ; ir <= endRow[ipage] ; ir++)  //ir变量用来标识当前打印的是哪些行，设置当前打印页的首列序号
+//    {
+//        QTableWidgetItem *newItem = printTable->item(iRow,0);
+//        if (!newItem)
+//        {
+//            if (view->verticalHeaderItem(ir))
+//                newItem = new QTableWidgetItem(view->verticalHeaderItem(ir)->text());
+//            else
+//                newItem = new QTableWidgetItem(QString::number(iRow));
+//            printTable->setItem(iRow,0,newItem);
+//        }
+//        else
+//        {
+//            if (view->verticalHeaderItem(ir))
+//                newItem->setText(view->verticalHeaderItem(ir)->text());
+//            else
+//                newItem->setText(QString::number(iRow));
+//        }
+//        iRow ++;
+//    }
+
+//    QPointF offPt(20,ioffy);  //20表示边框的空格
+
+//    int rr,cc,rowSpan,colSpan;
+//    rr=0;cc=0; rowSpan=3, colSpan=2;//合并的单元格，测试用，此信息需要保存
+
+//    for (int r = 0; r < rows-1 /*rows*/; r++)   //画横线，若有合并的单元格，需要修改，分两次画
+//    {
+//         if(r==rr && rowSpan!=1 && rr>=startRow[ipage]) //增加合并单元格的处理,判断startRow为了定位合并单元格所在的页
+//         {
+//             QRect rt1,rt2;
+//             QModelIndex idx1 = printTable->model()->index(r,0);
+//             QModelIndex idx2 = printTable->model()->index(r,cc-1);
+//             rt1 = printTable->visualRect(idx1);
+//             rt2 = printTable->visualRect(idx2);
+//             if(cc!=0)
+//             {
+//                painter.drawLine( (rt1.bottomLeft() + offPt) , (rt2.bottomRight() + offPt) ); //合并单元格前面的横线
+//             }
+
+//             idx1 = printTable->model()->index(r,cc+colSpan);
+//             idx2 = printTable->model()->index(r,cols-1);
+//             rt1 = printTable->visualRect(idx1);
+//             rt2 = printTable->visualRect(idx2);
+//             painter.drawLine( (rt1.bottomLeft() + offPt) , (rt2.bottomRight() + offPt) ); //合并单元格后面的横线
+
+//             rr++;
+//             rowSpan--;
+
+//             if (r == 0)
+//             {
+//                 idx1 = printTable->model()->index(r,0);
+//                 idx2 = printTable->model()->index(r,cols-1/*cols*/);
+//                 rt1 = printTable->visualRect(idx1);
+//                 rt2 = printTable->visualRect(idx2);
+//                 painter.drawLine( (rt1.topLeft() + offPt) , (rt2.topRight() + offPt) );
+//             }
+//         }
+//         else //
+//         {
+//            QRect rt1,rt2;
+//            QModelIndex idx1 = printTable->model()->index(r,0);
+//            QModelIndex idx2 = printTable->model()->index(r,cols-1/*cols*/);
+//            rt1 = printTable->visualRect(idx1);
+//            rt2 = printTable->visualRect(idx2);
+//            painter.drawLine( (rt1.bottomLeft() + offPt) , (rt2.bottomRight() + offPt) );
+//            if (r == 0)
+//            {
+//                painter.drawLine( (rt1.topLeft() + offPt) , (rt2.topRight() + offPt) );
+//            }
+//        }
+//    }
+
+//    rr=0;cc=0; rowSpan=3, colSpan=2; //合并的单元格，测试用，此信息需要保存
+
+//    for (int c = 0; c < cols /*+ 1*/; c++)      //画竖线，若有合并的单元格，需要修改，分两次画
+//    {
+//        if(cc==(c-1) && colSpan!=1 &&rr>=startRow[ipage]) //增加合并单元格的处理, 判断startRow为了定位合并单元格所在的页
+//        {
+//            QRect rt1,rt2;
+//            QModelIndex idx1 = printTable->model()->index(0,c);
+//            QModelIndex idx2 = printTable->model()->index(rr-1,c);
+//            rt1 = printTable->visualRect(idx1);
+//            rt2 = printTable->visualRect(idx2);
+//            if(rr!=0)
+//            {
+//               painter.drawLine( (rt1.topLeft() + offPt) , (rt2.bottomLeft() + offPt) ); //合并单元格前面的竖线
+//            }
+
+//            idx1 = printTable->model()->index(rr+rowSpan,c);
+//            idx2 = printTable->model()->index(rows-2,c);
+//            rt1 = printTable->visualRect(idx1);
+//            rt2 = printTable->visualRect(idx2);
+//            painter.drawLine( (rt1.topLeft() + offPt) , (rt2.bottomLeft() + offPt) );//合并单元格后面的竖线
+
+//            cc++;
+//            colSpan--;
+
+//            if (c == cols-1/*cols*/)
+//            {
+//                idx1 = printTable->model()->index(0,c);
+//                idx2 = printTable->model()->index(rows-2 /*- 1*/,c);
+//                rt1 = printTable->visualRect(idx1);
+//                rt2 = printTable->visualRect(idx2);
+//                painter.drawLine( (rt1.topRight() + offPt) , (rt2.bottomRight() + offPt) );
+//            }
+//        }
+//        else
+//        {
+//            QRect rt1,rt2;
+//            QModelIndex idx1 = printTable->model()->index(0,c);
+//            QModelIndex idx2 = printTable->model()->index(rows-2 /*- 1*/,c);
+//            rt1 = printTable->visualRect(idx1);
+//            rt2 = printTable->visualRect(idx2);
+//            painter.drawLine( (rt1.topLeft() + offPt) , (rt2.bottomLeft() + offPt) );
+//            if (c == cols-1/*cols*/)
+//            {
+//                painter.drawLine( (rt1.topRight() + offPt) , (rt2.bottomRight() + offPt) );
+//            }
+//        }
+//    }
+
+//    rr=0;cc=0; rowSpan=3, colSpan=2;//合并的单元格，测试用，此信息需要保存
+//    bool isDraw=FALSE;
+
+//    for (int r = 1/*0*/; r < rows; r++) //表格内容输出，若有合并单元格，需要特殊处理，居中显示
+//    {
+//        irowcount ++;
+//        for(int c =1 /*0*/; c < cols  + 1; c++)
+//        {
+//            if((r==(rr+1) && rowSpan!=0) &&(c==(cc+1) && colSpan!=0) &&rr>=startRow[ipage])//增加合并单元格的处理, 判断startRow为了定位合并单元格所在的页
+//            {
+//                if(!isDraw)
+//                {
+//                    QRect rt0,rt1,rt2;
+//                    QModelIndex idx0 = printTable->model()->index(rr+2,cc+1);
+//                    QModelIndex idx1 = printTable->model()->index(rr+2,cc+colSpan-1);
+//                    QModelIndex idx2 = printTable->model()->index(rr+rowSpan,cc+1);
+//                    rt0 = printTable->visualRect(idx0);
+//                    rt1 = printTable->visualRect(idx1);
+//                    rt2 = printTable->visualRect(idx2);
+
+//                    if(printTable->item(rr+1,cc+1))
+//                    {
+//                        QRectF rt(rt0.left(),rt0.top(),rt1.right()-rt0.left(),rt2.bottom()-rt0.top());
+//                        painter.drawText(rt,Qt::AlignHCenter,printTable->item(rr+1,cc+1)->text());
+//                    }
+//                }
+//                isDraw=TRUE;
+
+//                c+=cc+colSpan-2;
+//                rr++;
+//                rowSpan--;
+//            }
+//            else
+//            {
+//                QModelIndex idx = printTable->model()->index(r-1,c-1/*r,c*/);
+//                option.rect = printTable->visualRect(idx);
+//                if (printTable->item(r,c))
+//                {
+//                    QRectF rt(option.rect.left() + 3,option.rect.top(),option.rect.width(),option.rect.height());
+//                    rt = rt.translated(offPt);
+//                    if (r != 0 && c == 0)
+//                    {
+//                        painter.drawText(rt,Qt::AlignCenter,QString("%1").arg(irowcount));
+//                    }
+//                    else
+//                    {
+//                        if (r == 0)
+//                        {
+//                            painter.drawText(rt,Qt::AlignCenter,printTable->item(r,c)->text());
+//                        }
+//                        else
+//                        {
+//                            painter.drawText(rt,Qt::AlignVCenter,printTable->item(r,c)->text());
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
+//    //ipage
+//    if (ipage == 0)  //设置标题
+//    {
+//        QRectF rttt(area.left(),area.top(),area.width(),50);
+//        painter.drawText(rttt,Qt::AlignCenter,stitile);
+//    }
+//    QRectF rttt(area.left(),area.bottom() - 65,area.width(),25);
+//    painter.drawText(rttt,Qt::AlignCenter,QString::number(ipage + 1));
+//    if (ipage < startRow.size() - 1)
+//    {
+//        printer->newPage();
+//        irowcount--;
+//    }
+//}
+//painter.end();

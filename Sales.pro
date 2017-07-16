@@ -38,7 +38,8 @@ SOURCES += \
     HHeaderItemDelegate.cpp \
     HHeaderModel.cpp \
     HHeaderView.cpp \
-    billsview.cpp
+    billsview.cpp \
+    tdpreviewdialog.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -51,11 +52,13 @@ HEADERS += \
     HHeaderItemDelegate.h \
     HHeaderModel.h \
     HHeaderView.h \
-    billsview.h
+    billsview.h \
+    tdpreviewdialog.h
 
 FORMS += \
         mainwindow.ui \
-    newdlg.ui
+    newdlg.ui \
+    tdpreviewdialog.ui
 
 RESOURCES += \
     configure.qrc \

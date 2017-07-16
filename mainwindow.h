@@ -7,6 +7,7 @@
 #include "billwidgetdelegate.h"
 #include "dbmanager.h"
 #include "newdlg.h"
+#include "tdpreviewdialog.h"
 
 #include <QMainWindow>
 #include <QToolButton>
@@ -63,6 +64,8 @@ private:
     bool m_canStretchWindow;
     bool m_isOperationRunning;
 
+    TDPreviewDialog::Grids grid;
+    QPrinter *m_printer;
 private:
     void setupLine();
     void setupLineEdit();
@@ -85,6 +88,9 @@ private:
     void InitCombox(); // 根据加载的所有清单项初始化combox
     void InsertComboxItem(QString customer); // 添加新的客户到第二非空白项
     void RemoveComboxItem(QString customer); // 删除指定客户项
+
+    void print();
+
 private slots:
     void onClearButtonClicked();
     void createNewBill(QString no,
@@ -96,9 +102,12 @@ private slots:
     void onLineEditTextChanged(const QString& keyword);
     void onBillPressed(const QModelIndex &index);
     void QuitApplication();
+    void printTable(QPrinter *printer);
 
     void on_comboCustomer_currentIndexChanged(int index);
     void on_comboCustomer_currentIndexChanged(const QString &arg1);
+    void on_btnPreview_clicked();
+    void on_btnPrint_clicked();
 };
 
 #endif // MAINWINDOW_H

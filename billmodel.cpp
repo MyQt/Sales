@@ -143,7 +143,10 @@ QVariant BillModel::data(const QModelIndex &index, int role) const
         return QVariant();
 
     BillData* bill = m_billList[index.row()];
-    if(role == Qt::DisplayRole)
+    if (role==Qt::TextAlignmentRole)
+    {
+        return Qt::AlignCenter;
+    }else if(role == Qt::DisplayRole)
     {
       switch (index.column())
       {
@@ -400,4 +403,22 @@ QList<BillData *> BillModel::getBillsByCustomer(QString& customer)
     }
 
     return billList;
+}
+
+QVariant BillModel::headerData(int section, Qt::Orientation orientation, int role) const
+{
+    if (role != Qt::DisplayRole)
+        return QVariant();
+    if (orientation == Qt::Horizontal)
+    {
+        return QVariant();
+    }
+    else if(orientation == Qt::Vertical)
+    {
+        return QVariant(section+1);
+    }
+    else
+    {
+        return QVariant();
+    }
 }
