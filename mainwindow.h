@@ -34,6 +34,8 @@ public slots:
     void setMainWindowVisibility(bool state);
 private slots:
     void on_btnInsert_clicked();
+protected:
+    virtual void keyReleaseEvent(QKeyEvent *event);
 
 private:
     Ui::MainWindow *ui;
@@ -52,6 +54,7 @@ private:
     QSortFilterProxyModel* m_proxyModel;
     QModelIndex m_currentSelectedBillProxy;
     QModelIndex m_selectedBillBeforeSearchingInSource;
+    QModelIndex m_curClickIndex;
     DBManager* m_dbManager;
     int m_currentVerticalScrollAreaRange;
     int m_mousePressX;
@@ -108,6 +111,7 @@ private slots:
     void on_comboCustomer_currentIndexChanged(const QString &arg1);
     void on_btnPreview_clicked();
     void on_btnPrint_clicked();
+    void on_tableBills_clicked(const QModelIndex &index);
 };
 
 #endif // MAINWINDOW_H

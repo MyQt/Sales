@@ -506,6 +506,22 @@ void MainWindow::on_comboCustomer_currentIndexChanged(const QString &arg1)
     }
 }
 
+void MainWindow::keyReleaseEvent(QKeyEvent *event)
+{
+    if (event->key() == Qt::Key_Delete) // 删除选定的行
+    {
+        if (m_curClickIndex.isValid())
+        {
+            BillData* bill = m_billModel->getBill(m_curClickIndex);
+            m_dbManager->removeBill(bill);
+            m_billModel->removeBill(m_curClickIndex);
+            m_curClickIndex = QModelIndex();
+            m_currentSelectedBillProxy = QModelIndex();
+            m_selectedBillBeforeSearchingInSource = QModelIndex();
+        }
+    }
+}
+
 void MainWindow::print()   //printFlag =2 , 打印预览
 {
     QPrinter printer(QPrinter::ScreenResolution);
@@ -961,3 +977,8 @@ void MainWindow::on_btnPrint_clicked()
 //    }
 //}
 //painter.end();
+
+void MainWindow::on_tableBills_clicked(const QModelIndex &index)
+{
+    m_curClickIndex = index;
+}
