@@ -30,6 +30,7 @@ public:
     BillData* getBill(const QModelIndex& index);
     void addListBill(QList<BillData*> billList);
     BillData* removeBill(const QModelIndex& billIndex);
+    void removeBillByCustomer(const QString& customer);
     bool moveRow(const QModelIndex& sourceParent,
                  int sourceRow,
                  const QModelIndex& destinationParent,

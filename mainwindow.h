@@ -4,6 +4,7 @@
 #include "billdata.h"
 #include "billmodel.h"
 #include "billsview.h"
+#include "HHeaderModel.h"
 #include "billwidgetdelegate.h"
 #include "dbmanager.h"
 #include "newdlg.h"
@@ -50,7 +51,6 @@ private:
 
     BillsView* m_billView;
     BillModel* m_billModel;
-    BillModel* m_deletedBillsModel;
     QSortFilterProxyModel* m_proxyModel;
     QModelIndex m_currentSelectedBillProxy;
     QModelIndex m_selectedBillBeforeSearchingInSource;
@@ -85,6 +85,7 @@ private:
     void selectBill(const QModelIndex& billIndex);
     void selectFirstBill();
     void saveBillToDB(const QModelIndex& billIndex);
+    void saveBill(BillData* billData);
     void removeBillFromDB(const QModelIndex& billIndex);
     void removeBillByCustomer(const QString customer);
     void deleteBill(const QModelIndex& billIndex, bool isFromUser=true);
@@ -112,6 +113,7 @@ private slots:
     void on_btnPreview_clicked();
     void on_btnPrint_clicked();
     void on_tableBills_clicked(const QModelIndex &index);
+    void on_btnDelCustomer_clicked();
 };
 
 #endif // MAINWINDOW_H

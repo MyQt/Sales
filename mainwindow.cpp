@@ -8,6 +8,7 @@
 #include <QPrintPreviewDialog>
 #include <QPainter>
 #include <QTextDocument>
+#include <QTooltip>
 
 #pragma execution_character_set("utf-8")
 
@@ -23,7 +24,6 @@ MainWindow::MainWindow(QWidget *parent) :
     m_settingsDatabase(Q_NULLPTR),
     m_billView(Q_NULLPTR),
     m_billModel(new BillModel(this)),
-    m_deletedBillsModel(new BillModel(this)),
     m_proxyModel(new QSortFilterProxyModel(this)),
     m_dbManager(Q_NULLPTR),
     m_printer(new QPrinter(QPrinter::HighResolution)),
@@ -136,9 +136,9 @@ void MainWindow::onLineEditTextChanged (const QString &keyword)
         if(keyword.isEmpty()){
             m_billView->setFocusPolicy(Qt::StrongFocus);
             clearSearch();
-            QModelIndex indexInProxy = m_proxyModel->mapFromSource(m_selectedBillBeforeSearchingInSource);
-            if (indexInProxy.isValid())
-                selectBill(indexInProxy);
+            m_proxyModel->setFilterFixedString("这是一个非法的查询");
+            m_curClickIndex = QModelIndex();
+            m_currentSelectedBillProxy = QModelIndex();
             m_selectedBillBeforeSearchingInSource = QModelIndex();
         }else{
             m_billView->setFocusPolicy(Qt::NoFocus);
@@ -199,7 +199,7 @@ void MainWindow::InitCombox()
                 ui->comboCustomer->addItem(pData->customer());
         }
     }
-    ui->comboCustomer->setCurrentIndex(-1);
+    ui->comboCustomer->setCurrentIndex(ui->comboCustomer->count()-1);
 }
 
 void MainWindow::InsertComboxItem(QString customer)
@@ -208,6 +208,7 @@ void MainWindow::InsertComboxItem(QString customer)
     if (nIndex == -1)
         ui->comboCustomer->insertItem(1, customer);
         ui->comboCustomer->setCurrentIndex(1);
+        onLineEditTextChanged(customer);
 }
 
 void MainWindow::RemoveComboxItem(QString customer)
@@ -292,7 +293,8 @@ void MainWindow::setupModelView()
 {
     m_billView = static_cast<BillsView*>(ui->tableBills);
     m_proxyModel->setSourceModel(m_billModel);
-    m_proxyModel->setFilterKeyColumn(-1);
+//    m_proxyModel->setFilterKeyColumn(-1);
+    m_proxyModel->setFilterKeyColumn(12);
     m_proxyModel->setFilterRole(Qt::DisplayRole);
     m_proxyModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
 
@@ -406,7 +408,16 @@ void MainWindow::saveBillToDB(const QModelIndex &billIndex)
                 QtConcurrent::run(m_dbManager, &DBManager::addBill, bill);
             }
         }
+    }
+}
 
+void MainWindow::saveBill(BillData *billData)
+{
+    if(billData != Q_NULLPTR){
+        bool doExist = m_dbManager->isBillExist(billData);
+        if(!doExist){
+            QtConcurrent::run(m_dbManager, &DBManager::addBill, billData);
+        }
     }
 }
 
@@ -421,7 +432,11 @@ void MainWindow::removeBillFromDB(const QModelIndex& billIndex)
 
 void MainWindow::removeBillByCustomer(const QString customer)
 {
-
+    m_dbManager->removeBillsByCustomer(customer);
+    m_billModel->removeBill(m_curClickIndex);
+    m_curClickIndex = QModelIndex();
+    m_currentSelectedBillProxy = QModelIndex();
+    m_selectedBillBeforeSearchingInSource = QModelIndex();
 }
 
 void MainWindow::deleteBill(const QModelIndex &billIndex, bool isFromUser)
@@ -452,7 +467,7 @@ void MainWindow::deleteBill(const QModelIndex &billIndex, bool isFromUser)
 void MainWindow::on_btnInsert_clicked()
 {
     QString customer = ui->comboCustomer->currentText();
-    m_newDlg->init(m_billModel->getAllBills(), customer);
+    m_newDlg->init(m_billModel->getBillsByCustomer(customer), customer);
     m_newDlg->show();
 }
 
@@ -477,14 +492,28 @@ void MainWindow::createNewBill(QString no,
         QDateTime billDate = QDateTime::currentDateTime();
         pBillData->setCreationDateTime(billDate);
         ++m_billCounter;
-        QModelIndex indexSrc = m_billModel->addBill(pBillData);
-        m_currentSelectedBillProxy = m_proxyModel->mapFromSource(indexSrc);
+        int nIndex = ui->comboCustomer->findText(customer);
+        QModelIndex indexSrc;
+        if (nIndex == -1) // 创建新客户，清零
+        {
+            m_curClickIndex = QModelIndex();
+            m_currentSelectedBillProxy = QModelIndex();
+            m_selectedBillBeforeSearchingInSource = QModelIndex();
+            m_billModel->addBill(pBillData);
+            saveBill(pBillData);
+        } else
+        {
+            indexSrc = m_billModel->addBill(pBillData);
+            m_currentSelectedBillProxy = m_proxyModel->mapFromSource(indexSrc);
+            saveBillToDB(m_currentSelectedBillProxy);
+        }
+
+        m_billView->setCurrentIndex(m_currentSelectedBillProxy);
+        m_isOperationRunning = false;
+        QMessageBox::information(0, "创建表单", "表单创建成功", QMessageBox::Ok);
+        InsertComboxItem(customer);
     }
-    m_billView->setCurrentIndex(m_currentSelectedBillProxy);
-    m_isOperationRunning = false;
-    saveBillToDB(m_currentSelectedBillProxy);
-    QMessageBox::critical(0, "创建表单", "表单创建成功", QMessageBox::Ok);
-    InsertComboxItem(customer);
+
 }
 
 void MainWindow::on_comboCustomer_currentIndexChanged(int index)
@@ -500,9 +529,11 @@ void MainWindow::on_comboCustomer_currentIndexChanged(const QString &arg1)
         QString customerText("客户名: ");
         customerText.append(arg1);
         ui->labelCustomer->setText(customerText);
+        onLineEditTextChanged(arg1);
     } else
     {
         ui->labelCustomer->setText("");
+        onLineEditTextChanged(arg1);
     }
 }
 
@@ -518,6 +549,9 @@ void MainWindow::keyReleaseEvent(QKeyEvent *event)
             m_curClickIndex = QModelIndex();
             m_currentSelectedBillProxy = QModelIndex();
             m_selectedBillBeforeSearchingInSource = QModelIndex();
+            int posX = m_billView->pos().x();
+            int posY = m_billView->pos().y();
+            QToolTip::showText(QPoint(posX+m_billView->width()/2, posY+m_billView->height()/2), "列表项删除成功");
         }
     }
 }
@@ -547,9 +581,12 @@ void MainWindow::printTable(QPrinter *printer)
               "<table border=1 cellspacing=0 cellpadding=2>\n";
     // headers
     out << "<thead><tr bgcolor=#f0f0f0>";
+    HHeaderModel* pHeaderModel = (HHeaderModel *)(ui->tableBills->horizontalHeader()->model());
     for (int column = 0; column < columnCount; ++column)
+    {
         if (!ui->tableBills->isColumnHidden(column))
-            out << QString("<th>%1</th>").arg(ui->tableBills->model()->headerData(column, Qt::Horizontal).toString());
+            out << QString("<th>%1</th>").arg(pHeaderModel->item(0, column));
+    }
     out << "</tr></thead>\n";
     // data table
     for (int row = 0; row < rowCount; ++row)
@@ -574,13 +611,13 @@ void MainWindow::printTable(QPrinter *printer)
 
 void MainWindow::on_btnPreview_clicked()
 {
-    TDPreviewDialog *dialog = new TDPreviewDialog(m_billView,m_printer,this);
-    dialog->setGridMode(grid);
-    dialog->exec();
-    //do printing here...
-    //...
-    delete dialog;
-//    print();
+//    TDPreviewDialog *dialog = new TDPreviewDialog(m_billView,m_printer,this);
+//    dialog->setGridMode(grid);
+//    dialog->exec();
+//    //do printing here...
+//    //...
+//    delete dialog;
+    print();
 }
 
 void MainWindow::on_btnPrint_clicked()
@@ -627,13 +664,6 @@ void MainWindow::on_btnPrint_clicked()
 //    int pageFooter = 50 ;  //页脚的高度
 //    int pageHeader = 50;   //页眉的高度
 
-//    /*首页的曲线打印
-//    if (startRow.size() == 0)
-//    {
-//        pageFooter = 50 ;
-//        pageHeader = 500;
-//    }
-//    */
 //    if ((totalPageHeight >= (area.height() - pageFooter - pageHeader)) || (p == rows -1))  //如果目前累加列的高度大于或者等于可用页面高度 || 到达最后一行
 //    {
 //        totalPageHeight = view->rowHeight(p);
@@ -981,4 +1011,24 @@ void MainWindow::on_btnPrint_clicked()
 void MainWindow::on_tableBills_clicked(const QModelIndex &index)
 {
     m_curClickIndex = index;
+}
+
+void MainWindow::on_btnDelCustomer_clicked()
+{
+    QString customer = ui->comboCustomer->currentText();
+    if (!customer.isEmpty())
+    {
+        // 删除不需要的客户表单列表
+        m_dbManager->removeBillsByCustomer(customer);
+        m_billModel->removeBillByCustomer(customer);
+        m_curClickIndex = QModelIndex();
+        m_selectedBillBeforeSearchingInSource = QModelIndex();
+        m_currentSelectedBillProxy = QModelIndex();
+        QMessageBox::information(0, "提示", "删除成功", QMessageBox::Ok);
+        ui->comboCustomer->removeItem(ui->comboCustomer->currentIndex());
+        ui->labelCustomer->setText("");
+    } else
+    {
+        QMessageBox::information(0, "提示", "请先选择要删除的客户", QMessageBox::Ok);
+    }
 }

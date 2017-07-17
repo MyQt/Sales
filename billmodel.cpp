@@ -107,6 +107,19 @@ BillData* BillModel::removeBill(const QModelIndex &billIndex)
     return bill;
 }
 
+void BillModel::removeBillByCustomer(const QString &customer)
+{
+    for (int i = 0; i < m_billList.size(); i++)
+    {
+        if (m_billList.at(i)->customer() == customer)
+        {
+            beginRemoveRows(QModelIndex(), i, i);
+            BillData* bill = m_billList.takeAt(i);
+            endRemoveRows();
+        }
+    }
+}
+
 bool BillModel::moveRow(const QModelIndex &sourceParent, int sourceRow, const QModelIndex &destinationParent, int destinationChild)
 {
     if(sourceRow<0
@@ -417,8 +430,6 @@ QVariant BillModel::headerData(int section, Qt::Orientation orientation, int rol
     {
         return QVariant(section+1);
     }
-    else
-    {
-        return QVariant();
-    }
+
+    return QVariant();
 }

@@ -39,13 +39,13 @@
         </property>
         <property name="minimumSize">
          <size>
-          <width>175</width>
+          <width>75</width>
           <height>22</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>16777215</width>
+          <width>100</width>
           <height>22</height>
          </size>
         </property>
@@ -105,6 +105,22 @@
         </property>
         <property name="text">
          <string>插入新数据</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="btnDelCustomer">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="autoFillBackground">
+         <bool>true</bool>
+        </property>
+        <property name="text">
+         <string>删除该客户</string>
         </property>
        </widget>
       </item>
