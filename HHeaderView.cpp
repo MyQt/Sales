@@ -21,7 +21,7 @@ HHeaderView::HHeaderView(Qt::Orientation orientation, QWidget * parent) : QHeade
     connect(this, SIGNAL(sectionResized(int,int,int)), this, SLOT(onSectionResized(int,int,int)));
     //! 交互式，代表支持鼠标拖动
     setSectionResizeMode(QHeaderView::Stretch);
-
+    setStretchLastSection(true);
     this->setOffset(0);    //! 这将会影响item绘制的位置
     setSectionsClickable(false);
     setHighlightSections(false);

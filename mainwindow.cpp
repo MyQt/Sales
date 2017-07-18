@@ -439,7 +439,8 @@ void MainWindow::removeBillFromDB(const QModelIndex& billIndex)
 void MainWindow::removeBillByCustomer(const QString customer)
 {
     m_dbManager->removeBillsByCustomer(customer);
-    m_billModel->removeBill(m_curClickIndex);
+    QModelIndex indexSrc = m_proxyModel->mapToSource(m_curClickIndex);
+    m_billModel->removeBill(indexSrc);
     m_curClickIndex = QModelIndex();
     m_currentSelectedBillProxy = QModelIndex();
     m_selectedBillBeforeSearchingInSource = QModelIndex();
@@ -572,6 +573,8 @@ void MainWindow::print()   //printFlag =2 , 打印预览
     printer.setPageSize(QPrinter::A4);
 
     QPrintPreviewDialog preview(&printer, this);
+    preview.setWindowTitle("打印预览");
+
     preview.setMinimumSize(m_billView->width(),m_billView->height());
     m_billView->setInputInfo(ui->labelCustomer->text(), ui->lineMaker->text(), ui->lineDriver->text());
     connect(&preview, &QPrintPreviewDialog::paintRequested,m_billView,&BillsView::prints);

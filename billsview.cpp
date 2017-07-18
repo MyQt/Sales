@@ -44,7 +44,20 @@ void BillsView::initHeaderView()
    setHorizontalHeader(pHeadView);
 
    pHeadView->setSectionSize(pHeadModel, width());
-   setColumnWidth(11, 150);
+   int colWidth = width()/pHeadModel->getColumnCount();
+   setColumnWidth(0, colWidth);
+   setColumnWidth(1, colWidth);
+   setColumnWidth(2, colWidth);
+   setColumnWidth(3, colWidth/2);
+   setColumnWidth(4, colWidth/2);
+   setColumnWidth(5, colWidth/2);
+   setColumnWidth(6, colWidth/2);
+   setColumnWidth(7, colWidth);
+   setColumnWidth(8, colWidth);
+   setColumnWidth(9, colWidth);
+   setColumnWidth(10, colWidth);
+   setColumnWidth(11, colWidth);
+   setColumnWidth(12, colWidth*3);
 //   resizeColumnsToContents();
    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -261,23 +274,23 @@ void BillsView::onCurrentRowChanged(const QModelIndex &current, const QModelInde
 
 void BillsView::onEntered(QModelIndex index)
 {
-    if(model() != Q_NULLPTR){
-        if(index.row() > 1){
-            QModelIndex prevPrevIndex = model()->index(index.row()-2, 0);
-            viewport()->update(visualRect(prevPrevIndex));
+//    if(model() != Q_NULLPTR){
+//        if(index.row() > 1){
+//            QModelIndex prevPrevIndex = model()->index(index.row()-2, 0);
+//            viewport()->update(visualRect(prevPrevIndex));
 
-            QModelIndex prevIndex = model()->index(index.row()-1, 0);
-            viewport()->update(visualRect(prevIndex));
+//            QModelIndex prevIndex = model()->index(index.row()-1, 0);
+//            viewport()->update(visualRect(prevIndex));
 
-        }else if(index.row() > 0){
-            QModelIndex prevIndex = model()->index(index.row()-1, 0);
-            viewport()->update(visualRect(prevIndex));
-        }
+//        }else if(index.row() > 0){
+//            QModelIndex prevIndex = model()->index(index.row()-1, 0);
+//            viewport()->update(visualRect(prevIndex));
+//        }
 
 //        BillWidgetDelegate* delegate = static_cast<BillWidgetDelegate *>(itemDelegate());
 //        if(delegate != Q_NULLPTR)
 //            delegate->setHoveredIndex(index);
-    }
+//    }
 }
 
 void BillsView::onViewportEntered()
