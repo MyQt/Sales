@@ -42,9 +42,10 @@ public:
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const Q_DECL_OVERRIDE;
-    int columnCount(const QModelIndex &) const;
+    int columnCount(const QModelIndex &parent = QModelIndex()) const;
     int getExistedItem(BillData* bill);
     int getLastExistedItem(BillData* bill);
+    int getPreBillRow(BillData* bill); // 获取上一个no秸
     void sort(int column, Qt::SortOrder order) Q_DECL_OVERRIDE;
     void print();
     QList<BillData *>& getAllBills() { return m_billList; }

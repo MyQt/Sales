@@ -14,7 +14,7 @@ BillModel::~BillModel()
 
 QModelIndex BillModel::addBill(BillData* bill)
 {
-    const int rowCnt = rowCount();
+    int rowCnt = rowCount();
 
     int existedIndex = getExistedItem(bill);
     if (existedIndex != -1)
@@ -43,9 +43,11 @@ QModelIndex BillModel::addBill(BillData* bill)
         bill->addTotalDetailCodeNum(detailCodeNum);
         bill->addTotalBillNum(billNum);
         bill->addTotalBillPrice(billPrice);
-        beginInsertRows(QModelIndex(), rowCnt, rowCnt);
-        m_billList << bill;
+        int insertRow = getPreBillRow(bill);
+        beginInsertRows(QModelIndex(), insertRow, insertRow);
+        m_billList.insert(insertRow, bill);
         endInsertRows();
+        rowCnt = insertRow;
     }
     return createIndex(rowCnt, 0);
 }
@@ -334,7 +336,7 @@ int BillModel::rowCount(const QModelIndex &parent) const
     return m_billList.count();
 }
 
-int BillModel::columnCount(const QModelIndex &) const
+int BillModel::columnCount(const QModelIndex &parent) const
 {
     return 13;
 }
@@ -343,18 +345,18 @@ void BillModel::sort(int column, Qt::SortOrder order)
     Q_UNUSED(column)
     Q_UNUSED(order)
 
-    std::stable_sort(m_billList.begin(), m_billList.end(), [](BillData* lhs, BillData* rhs){
-        if (lhs->no() < rhs->no())
-            return true;
-        if (lhs->variety() < rhs->variety())
-            return true;
-        if (lhs->creationDateTime() < rhs->creationDateTime())
-            return true;
+//    std::stable_sort(m_billList.begin(), m_billList.end(), [](BillData* lhs, BillData* rhs){
+//        if (lhs->no() < rhs->no())
+//            return true;
+//        if (lhs->variety() < rhs->variety())
+//            return true;
+//        if (lhs->creationDateTime() < rhs->creationDateTime())
+//            return true;
 
-        return false;
-    });
+//        return false;
+//    });
 
-    emit dataChanged(index(0,0), index(rowCount()-1, 9));
+    emit dataChanged(index(0,0), index(rowCount()-1, 12));
 }
 
 
@@ -402,6 +404,19 @@ int BillModel::getLastExistedItem(BillData *bill)
     }
 
     return index;
+}
+
+int BillModel::getPreBillRow(BillData *bill)
+{
+    int row = 0;
+    for (int i = 0; i < m_billList.size(); i++)\
+    {
+        BillData* billData = m_billList.at(i);
+        if (billData != Q_NULLPTR && billData->no() < bill->no())
+            row++;
+    }
+
+    return row;
 }
 
 QList<BillData *> BillModel::getBillsByCustomer(QString& customer)

@@ -78,7 +78,7 @@ TDPreviewDialog::TDPreviewDialog(BillsView *p_tableView, QPrinter * p_printer, Q
                 int colWidth=tableView->columnWidth(i);
                 colSizes.append(QTextLength(QTextLength::FixedLength,colWidth));
         }
-
+        
         //title font
         titleFont=tableView->font();
         titleFont.setPointSize(14);

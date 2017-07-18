@@ -35,7 +35,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_isOperationRunning(false)
 {
     ui->setupUi(this);
-    grid=TDPreviewDialog::NoGrid;
+    grid=TDPreviewDialog::NormalGrid;
     setupLine();
     setupLineEdit();
     setupDatabases();
@@ -206,9 +206,11 @@ void MainWindow::InsertComboxItem(QString customer)
 {
     int nIndex = ui->comboCustomer->findText(customer);
     if (nIndex == -1)
+    {
         ui->comboCustomer->insertItem(1, customer);
         ui->comboCustomer->setCurrentIndex(1);
         onLineEditTextChanged(customer);
+    }
 }
 
 void MainWindow::RemoveComboxItem(QString customer)
@@ -231,6 +233,7 @@ void MainWindow::setupSignalsSlots()
             QModelIndex indexInProxy = m_proxyModel->index(1, 0);
             selectBill(indexInProxy);
         }
+
     });
     // note model rows moved
     connect(m_billModel, &BillModel::rowsAboutToBeMoved, m_billView, &BillsView::rowsAboutToBeMoved);
@@ -559,9 +562,12 @@ void MainWindow::keyReleaseEvent(QKeyEvent *event)
 void MainWindow::print()   //printFlag =2 , 打印预览
 {
     QPrinter printer(QPrinter::ScreenResolution);
+    printer.setPageSize(QPrinter::A4);
+
     QPrintPreviewDialog preview(&printer, this);
-    preview.setMinimumSize(942,524);
-    connect(&preview, SIGNAL(paintRequested(QPrinter *)),this, SLOT(printTable(QPrinter *)));
+    preview.setMinimumSize(m_billView->width(),m_billView->height());
+    m_billView->setCustomer(ui->labelCustomer->text());
+    connect(&preview, &QPrintPreviewDialog::paintRequested,m_billView,&BillsView::prints);
     preview.exec();
 }
 
@@ -585,7 +591,15 @@ void MainWindow::printTable(QPrinter *printer)
     for (int column = 0; column < columnCount; ++column)
     {
         if (!ui->tableBills->isColumnHidden(column))
-            out << QString("<th>%1</th>").arg(pHeaderModel->item(0, column));
+        {
+//            if (column <= 3 || column >= 7)
+//            {
+                out << QString("<th>%1</th>").arg(pHeaderModel->item(0, column));
+//            } else
+//            {
+//                out << QString("%1").arg(pHeaderModel->item(0, column));
+//            }
+        }
     }
     out << "</tr></thead>\n";
     // data table
@@ -611,18 +625,18 @@ void MainWindow::printTable(QPrinter *printer)
 
 void MainWindow::on_btnPreview_clicked()
 {
-//    TDPreviewDialog *dialog = new TDPreviewDialog(m_billView,m_printer,this);
+//    TDPreviewDialog *dialog = new TDPreviewDialog(m_billView,m_printer, ui->comboCustomer->currentText(), this);
 //    dialog->setGridMode(grid);
 //    dialog->exec();
 //    //do printing here...
 //    //...
-//    delete dialog;
+//    delete dialog;iiiiiiii
     print();
 }
 
 void MainWindow::on_btnPrint_clicked()
 {
-    TDPreviewDialog *dialog = new TDPreviewDialog(m_billView,m_printer,this);
+    TDPreviewDialog *dialog = new TDPreviewDialog(m_billView,m_printer, ui->comboCustomer->currentText(), this);
     dialog->setGridMode(grid);
     dialog->print();
     delete dialog;
@@ -647,7 +661,7 @@ void MainWindow::on_btnPrint_clicked()
 
 //QPainter painter(printer);
 //painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
-//painter.begin(printer);
+//iiiiiiiiiiiiiii.begin(printer);
 //QRect area = printer->paperRect();// paperRect();
 //QVector<int> startRow;
 //QVector<int> endRow;

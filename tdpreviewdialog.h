@@ -29,7 +29,9 @@
 #include <QGraphicsView> //checked
 #include <QPrinter>
 #include <QTableView>
-
+#include "billmodel.h"
+#include "billsview.h"
+#include "HHeaderModel.h"
 /*! \class TDPreviewDialog
  *  \brief TDPreviewDialog dialog
  *  \author Kund Gordos
@@ -55,7 +57,7 @@ public:
 		AlternateWithGrid=0x3
 	};
 
-	TDPreviewDialog(QTableView *p_tableView, QPrinter * p_printer,  QWidget *parent=0);
+    TDPreviewDialog(BillsView *p_tableView, QPrinter * p_printer, QString customer,  QWidget *parent=0);
         virtual ~TDPreviewDialog();
 	virtual void setHeaderText(const QString &text);
 	virtual void setGridMode(Grids);
@@ -75,7 +77,7 @@ private:
 	virtual void paintPage(int pagenum);
 	virtual void setupSpinBox();
 	QGraphicsView *view;
-	QTableView *tableView;
+    BillsView *tableView;
 	QPrinter *printer;
 	TDPreviewDialog::Grids gridMode;
 	int lines;
@@ -94,7 +96,8 @@ private:
 	QString headerText;
     QString footerText;
 	QVector<QTextLength> colSizes;
-	QAbstractItemModel *model;
+    BillModel *model;
+    HHeaderModel* m_header_model;
 	QGraphicsScene pageScene;
 	QFont titleFont;
 	QFont headerFont;

@@ -18,7 +18,11 @@ public:
 //    void animateAddedRow(const QModelIndex &parent, int start, int end);
     void setSearching(bool isSearching);
     void setCurrentRowActive(bool isActive);
-
+    void CalcultPrintAreaRow(int h, int &pageCount, QVector<int> &printAreaStartRow, QVector<int> &printAreaHeight);
+    void CalcultPrintAreaCol(int w, int &pageCount, QVector<int> &printAreaStartCol, QVector<int> &printAreaWidth);
+    int CalcultTableViewWidth();
+    int CalcultTableViewHeight();
+    void setCustomer(const QString& customer) { m_customer = customer; }
 protected:
     void paintEvent(QPaintEvent *e) Q_DECL_OVERRIDE;
     void mouseMoveEvent(QMouseEvent* e) Q_DECL_OVERRIDE;
@@ -29,7 +33,7 @@ protected:
 private:
     bool m_isSearching;
     bool m_isMousePressed;
-
+    QString m_customer;
     void setupSignalsSlots();
     void setupStyleSheet();
 
@@ -39,8 +43,8 @@ public slots:
 
     void rowsMoved(const QModelIndex &parent, int start, int end,
                    const QModelIndex &destination, int row);
-public Q_SLOTS:
-    void print(QPrinter *printer);
+public slots:
+    void prints(QPrinter *printer);
 private slots:
     void init();
     void onCurrentRowChanged(const QModelIndex & current, const QModelIndex & previous);

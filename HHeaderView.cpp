@@ -70,7 +70,9 @@ void HHeaderView::initHeaderView(HHeaderModel *pModel)
 void HHeaderView::setSectionSize(HHeaderModel *pModel, int width)
 {
     int nColWdth = width / pModel->getColumnCount();
-    setDefaultSectionSize(170);
+
+    setDefaultSectionSize(nColWdth);
+
     resizeSection(0, 140);
     resizeSection(1, nColWdth*2);
     resizeSection(2, nColWdth);
