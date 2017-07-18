@@ -71,21 +71,21 @@ void HHeaderView::setSectionSize(HHeaderModel *pModel, int width)
 {
     int nColWdth = width / pModel->getColumnCount();
 
-    setDefaultSectionSize(nColWdth);
+//    setDefaultSectionSize(nColWdth);
 
-    resizeSection(0, 140);
-    resizeSection(1, nColWdth*2);
-    resizeSection(2, nColWdth);
-    resizeSection(3, nColWdth);
-    resizeSection(4, nColWdth);
-    resizeSection(5, nColWdth);
-    resizeSection(6, nColWdth);
-    resizeSection(7, nColWdth*2);
-    resizeSection(8, nColWdth*2);
-    resizeSection(9, nColWdth*2);
-    resizeSection(10, nColWdth*2);
-    resizeSection(11, nColWdth*2);
-    resizeSection(12, nColWdth*7);
+//    resizeSection(0, 140);
+//    resizeSection(1, nColWdth*2);
+//    resizeSection(2, nColWdth);
+//    resizeSection(3, nColWdth);
+//    resizeSection(4, nColWdth);
+//    resizeSection(5, nColWdth);
+//    resizeSection(6, nColWdth);
+//    resizeSection(7, nColWdth*2);
+//    resizeSection(8, nColWdth*2);
+//    resizeSection(9, nColWdth*2);
+//    resizeSection(10, nColWdth*2);
+//    resizeSection(11, nColWdth*2);
+//    resizeSection(12, nColWdth*7);
 }
 
 void HHeaderView::setQuit()

@@ -22,7 +22,12 @@ public:
     void CalcultPrintAreaCol(int w, int &pageCount, QVector<int> &printAreaStartCol, QVector<int> &printAreaWidth);
     int CalcultTableViewWidth();
     int CalcultTableViewHeight();
-    void setCustomer(const QString& customer) { m_customer = customer; }
+    void setInputInfo(const QString& customer, const QString& maker, const QString& driver)
+    {
+        m_customer = customer;
+        m_maker = maker;
+        m_driver = driver;
+    }
 protected:
     void paintEvent(QPaintEvent *e) Q_DECL_OVERRIDE;
     void mouseMoveEvent(QMouseEvent* e) Q_DECL_OVERRIDE;
@@ -34,6 +39,8 @@ private:
     bool m_isSearching;
     bool m_isMousePressed;
     QString m_customer;
+    QString m_maker;
+    QString m_driver;
     void setupSignalsSlots();
     void setupStyleSheet();
 

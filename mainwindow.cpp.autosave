@@ -439,7 +439,8 @@ void MainWindow::removeBillFromDB(const QModelIndex& billIndex)
 void MainWindow::removeBillByCustomer(const QString customer)
 {
     m_dbManager->removeBillsByCustomer(customer);
-    m_billModel->removeBill(m_curClickIndex);
+    QModelIndex indexSrc = m_proxyModel->mapToSource(m_curClickIndex);
+    m_billModel->removeBill(indexSrc);
     m_curClickIndex = QModelIndex();
     m_currentSelectedBillProxy = QModelIndex();
     m_selectedBillBeforeSearchingInSource = QModelIndex();

@@ -111,7 +111,6 @@ private slots:
     void on_comboCustomer_currentIndexChanged(int index);
     void on_comboCustomer_currentIndexChanged(const QString &arg1);
     void on_btnPreview_clicked();
-    void on_btnPrint_clicked();
     void on_tableBills_clicked(const QModelIndex &index);
     void on_btnDelCustomer_clicked();
 };

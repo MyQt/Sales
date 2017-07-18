@@ -345,16 +345,16 @@ void BillModel::sort(int column, Qt::SortOrder order)
     Q_UNUSED(column)
     Q_UNUSED(order)
 
-//    std::stable_sort(m_billList.begin(), m_billList.end(), [](BillData* lhs, BillData* rhs){
-//        if (lhs->no() < rhs->no())
-//            return true;
-//        if (lhs->variety() < rhs->variety())
-//            return true;
-//        if (lhs->creationDateTime() < rhs->creationDateTime())
-//            return true;
+    std::stable_sort(m_billList.begin(), m_billList.end(), [](BillData* lhs, BillData* rhs){
+        if (lhs->no() < rhs->no())
+            return true;
+        if (lhs->variety() < rhs->variety())
+            return true;
+        if (lhs->creationDateTime() < rhs->creationDateTime())
+            return true;
 
-//        return false;
-//    });
+        return false;
+    });
 
     emit dataChanged(index(0,0), index(rowCount()-1, 12));
 }

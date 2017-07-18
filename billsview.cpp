@@ -22,6 +22,7 @@ BillsView::BillsView(QWidget *parent)
 {
 
     QTimer::singleShot(0, this, SLOT(init()));
+
     setSelectionBehavior(QAbstractItemView::SelectRows);
     setEditTriggers(QAbstractItemView::NoEditTriggers);
 }
@@ -43,6 +44,7 @@ void BillsView::initHeaderView()
    setHorizontalHeader(pHeadView);
 
    pHeadView->setSectionSize(pHeadModel, width());
+   setColumnWidth(11, 150);
 //   resizeColumnsToContents();
    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -328,6 +330,7 @@ void BillsView::setupSignalsSlots()
 void BillsView::setupStyleSheet()
 {
     QString ss = QString("QTableView {background-color: rgb(255, 255, 255);} "
+                         "QTableView::item{selection-background-color:rgb(23,165,230)}"
 //                         "QScrollBar {margin-right: 2px; background: transparent;} "
 //                         "QScrollBar:hover { background-color: rgb(217, 217, 217);}"
 //                         "QScrollBar:handle:vertical:hover { background: rgb(170, 170, 171); } "
@@ -485,13 +488,16 @@ void BillsView::prints(QPrinter *printer)
     QString pageText;
     QString date=QDate::currentDate().toString(QLocale().dateFormat());
     QString time=QTime::currentTime().toString(QLocale().timeFormat(QLocale::ShortFormat));
-    headerText = "客户名: " + m_customer +"     ";
+    headerText = m_customer +"     ";
     headerText.append("地址: 商丘市梁园区海淀路9号金花布业     ");
     headerText.append("电话: 13939605733     ");
     headerText.append("日期: ");
     headerText.append(date);
     int headerWidth = headerFmt->width(headerText);
-    footerText=trUtf8("制单人: 金花     司机: 老王     银行卡号: 3999444444444444444");
+    footerText="制单人: ";
+    footerText.append(m_maker).append("     ");
+    footerText.append("司机: ").append(m_driver).append("     ");
+    footerText.append("银行卡号: 6666666666666666666");
 
     int footerWidth = headerFmt->width(footerText);
     QRect rectOrig = geometry();
@@ -526,15 +532,20 @@ void BillsView::prints(QPrinter *printer)
 
         for (j = 0; j < col_pageCount; j++) {
             resize(printAreaWidth[j], printAreaHeight[i]);
+            QString pageCur = i;
+            QString pageEnd = row_pageCount;
             pageText = "页数: ";
-            pageText.append(i).append(" /");
-            pageText.append(" ").append(row_pageCount);
+            pageText.append(QString::number(i+1));
+            pageText.append(" / ").append(QString::number(row_pageCount));
             int pageWidth = headerFmt->width(pageText);
             painter.drawText(QRectF(printer->pageRect().width()/2-titleWidth/2, marginTop/4, titleWidth, titleFmt->height()), titleText);
             painter.drawText(QRectF(marginLeft, marginTop-headerFmt->height()-2, headerWidth, headerFmt->height()), headerText);
-            painter.drawText(QRectF(marginLeft, marginTop+printAreaHeight[i]+2, footerWidth, headerFmt->height()), footerText);
+            painter.drawText(QRectF(marginLeft, marginTop+printAreaHeight[i]+3, footerWidth, headerFmt->height()), footerText);
             painter.drawText(QRectF(marginLeft, printer->pageRect().height()-headerFmt->height()-2, pageWidth, headerFmt->height()), pageText);
-
+            if (i > 0 || col_pageCount == 1 && !printer->fullPage())
+            {
+                painter.drawLine(QPointF(marginLeft, marginTop+printAreaHeight[i]+1), QPointF(marginLeft+printAreaWidth[j], marginTop+printAreaHeight[i]+1));
+            }
             render(&painter, QPoint(marginLeft, marginTop), QRegion(0, 0, printAreaWidth[j], printAreaHeight[i]));            //绘制到指定区域
             //隐藏列
             for (k =  printAreaStartCol[j]; k < printAreaStartCol[j + 1]; k++) setColumnHidden(k, true);
