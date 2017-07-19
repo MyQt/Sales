@@ -433,6 +433,22 @@ QList<BillData *> BillModel::getBillsByCustomer(QString& customer)
     return billList;
 }
 
+QString BillModel::getTotalMoneyByCustomer(QString &customer)
+{
+    float totalMoney = 0;
+    QList<BillData *> billList = getBillsByCustomer(customer);
+    for (int i = 0; i < billList.size(); i++)
+    {
+        BillData* pData = billList.at(i);
+        if (pData != Q_NULLPTR && !pData->isRepeated())
+        {
+           totalMoney += pData->getTotalBillPrice().toFloat();
+        }
+    }
+
+    return QString::number((int)totalMoney);
+}
+
 QVariant BillModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
     if (role != Qt::DisplayRole)
@@ -447,4 +463,22 @@ QVariant BillModel::headerData(int section, Qt::Orientation orientation, int rol
     }
 
     return QVariant();
+}
+
+int BillModel::getLastID() const
+{
+    int lastID = 0;
+    for (int i = 0; i < m_billList.size(); i++)
+    {
+        BillData* pData = m_billList.at(i);
+        if (pData != Q_NULLPTR)
+        {
+            if (lastID < pData->id().toInt())
+            {
+                lastID = pData->id().toInt();
+            }
+        }
+    }
+
+    return lastID;
 }

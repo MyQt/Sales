@@ -45,9 +45,14 @@ MainWindow::MainWindow(QWidget *parent) :
     setupTrayIcon();
     loadBills();
     InitCombox();
-    QString dateText("日期: ");
-    QString date=QDate::currentDate().toString(QLocale().dateFormat());
-    dateText.append(date);
+    QString dateText("日期: "), year, month, day;
+    QDate date = QDate::currentDate();
+    year.setNum(date.year());
+    month.setNum(date.month());
+    day.setNum(date.day());
+    QString dateString(year);
+    dateString.append("-").append(month).append("-").append(day);
+    dateText.append(dateString);
     ui->labelDate->setText(dateText);
 
 //    ui->billView->hide();
@@ -308,6 +313,7 @@ void MainWindow::setupModelView()
     m_billView->setModel(m_proxyModel);  
     m_billView->initHeaderView();
     m_billView->setColumnHidden(12, true);
+    m_miniPrintSize = QSize(860, m_billView->height());
 }
 
 void MainWindow::setMainWindowVisibility(bool state)
@@ -489,7 +495,8 @@ void MainWindow::createNewBill(QString no,
     {
         m_isOperationRunning = true;
         BillData* pBillData = new BillData(this);
-        pBillData->setId(QString(m_dbManager->getLastRowID()+1));
+        QString id;
+        pBillData->setId(id.setNum(m_billModel->getLastID()+1));
         pBillData->setNo(no);
         pBillData->setVariety(variety);
         pBillData->setdetailCode(detail_code);
@@ -575,8 +582,10 @@ void MainWindow::print()   //printFlag =2 , 打印预览
     QPrintPreviewDialog preview(&printer, this);
     preview.setWindowTitle("打印预览");
 
-    preview.setMinimumSize(m_billView->width(),m_billView->height());
+//    preview.setMinimumSize(m_miniPrintSize);
+    preview.setFixedSize(m_miniPrintSize);
     m_billView->setInputInfo(ui->labelCustomer->text(), ui->lineMaker->text(), ui->lineDriver->text());
+    m_billView->setTotalMoney(m_billModel->getTotalMoneyByCustomer(ui->comboCustomer->currentText()));
     connect(&preview, &QPrintPreviewDialog::paintRequested,m_billView,&BillsView::prints);
     preview.exec();
 }

@@ -12,6 +12,8 @@
 #include <QSortFilterProxyModel>
 #include <QTimer>
 #include <QScrollBar>
+#include <QTextOption>
+#include <QDate>
 
 #pragma execution_character_set("utf-8")
 
@@ -361,9 +363,6 @@ void BillsView::setupStyleSheet()
 void BillsView::CalcultPrintAreaRow(int h, int &pageCount, QVector<int> &printAreaStartRow, QVector<int> &printAreaHeight)
 {
     int pix_height = 0;
-    BillModel *item_model = (BillModel*)this->model();
-    if (item_model == NULL) return;
-
     HHeaderView *headerView = (HHeaderView*)this->horizontalHeader ();
     if (headerView != NULL)    pix_height = headerView->height();
 
@@ -372,7 +371,7 @@ void BillsView::CalcultPrintAreaRow(int h, int &pageCount, QVector<int> &printAr
     int i;
 
     printAreaStartRow.push_back(0);
-    for (i = 0; i < item_model->rowCount(); ) {
+    for (i = 0; i < model()->rowCount(); ) {
         if (pix_height + rowHeight(i) > h) { // 到当前行时，已经到了页尾
             printAreaStartRow.push_back(i); // 记录行号
             printAreaHeight.push_back(pix_height); // 记录总高度
@@ -402,9 +401,6 @@ void BillsView::CalcultPrintAreaRow(int h, int &pageCount, QVector<int> &printAr
 void BillsView::CalcultPrintAreaCol(int w, int &pageCount, QVector<int> &printAreaStartCol, QVector<int> &printAreaWidth)
 {
     int pix_width = 0;
-    BillModel *item_model = (BillModel*)this->model();
-    if (item_model == NULL) return;
-
     HHeaderView *headerView = (HHeaderView*)this->verticalHeader ();
     if (headerView != NULL)    pix_width = headerView->width();
 
@@ -412,7 +408,7 @@ void BillsView::CalcultPrintAreaCol(int w, int &pageCount, QVector<int> &printAr
 
     int i;
     printAreaStartCol.push_back(0);
-    for (i = 0; i < item_model->columnCount() && !isColumnHidden(i); ) {
+    for (i = 0; i < model()->columnCount() && !isColumnHidden(i); ) {
         if (pix_width + columnWidth(i) > w) { // 宽度超打印页
             printAreaStartCol.push_back(i);
             printAreaWidth.push_back(pix_width);
@@ -442,13 +438,10 @@ int BillsView::CalcultTableViewWidth()
 {
     int pix_width = 0;
 
-    BillModel *item_model = (BillModel*)this->model();
-    if (item_model == NULL) return 0;
-
     HHeaderView *headerView = (HHeaderView*)this->verticalHeader ();
     if (headerView != NULL)    pix_width = headerView->width();
 
-    for (int i = 0; i < item_model->columnCount()&&!isColumnHidden(i); i++) {
+    for (int i = 0; i < model()->columnCount()&&!isColumnHidden(i); i++) {
         pix_width += columnWidth(i);
     }
 
@@ -458,20 +451,88 @@ int BillsView::CalcultTableViewWidth()
 int BillsView::CalcultTableViewHeight()
 {
     int pix_height = 0;
-
-    BillModel *item_model = (BillModel *)this->model();
-    if (item_model == NULL) return 0;
-
     HHeaderView *headerView = (HHeaderView *)this->horizontalHeader ();
     if (headerView != NULL)    pix_height = headerView->height();
 
-    for (int i = 0; i < item_model->rowCount(); i++) {
+    for (int i = 0; i < model()->rowCount(); i++) {
         pix_height += rowHeight(i);
     }
 
     return pix_height;
 }
 
+QString BillsView::getUpperTotalMoney(QString totalMoney)
+{
+    const QString DXSZ = "零壹贰叁肆伍陆柒捌玖";
+    const QString DXDW = "毫厘分角元拾佰仟萬拾佰仟亿拾佰仟萬兆拾佰仟萬亿京拾佰仟萬亿兆垓";
+    const QString SCDW = "元拾佰仟萬亿京兆垓";
+    QString capValue = totalMoney;
+    QString currCap = "";    //当前金额
+    QString capResult = "";  //结果金额
+    QString currentUnit = "";//当前单位
+    QString resultUnit = ""; //结果单位
+    int prevChar = -1;      //上一位的值
+    int currChar = 0;       //当前位的值
+    int posIndex = 4;       //位置索引，从"元"开始
+    for (int i = capValue.length() - 1; i >= 0; i--)
+    {
+       currChar = QString(capValue.at(i)).toInt();
+       if (posIndex > 22)
+       {
+           //已超出最大精度"垓"。注：可以将30改成22，使之精确到兆亿就足够了
+           break;
+       }
+       else if (currChar != 0)
+       {
+           //当前位为非零值，则直接转换成大写金额
+           currCap = QString(DXSZ.at(currChar)) + QString(DXDW.at(posIndex));
+       }
+       else
+       {
+           //防止转换后出现多余的零,例如：3000020
+           switch (posIndex)
+           {
+               case 4: currCap = "元"; break;
+               case 8: currCap = "萬"; break;
+               case 12: currCap = "亿"; break;
+               case 17: currCap = "兆"; break;
+               case 23: currCap = "京"; break;
+               case 30: currCap = "垓"; break;
+               default: break;
+           }
+           if (prevChar != 0 )
+           {
+               if (currCap != "")
+               {
+                   if (currCap != "元") currCap += "零";
+               }
+               else
+               {
+                   currCap = "零";
+               }
+           }
+       }
+      //对结果进行容错处理
+       if(capResult.length() > 0)
+       {
+             resultUnit = capResult.at(0);
+             currentUnit = DXDW.at(posIndex);
+             if (SCDW.indexOf(resultUnit) > 0)
+             {
+                   if (SCDW.indexOf(currentUnit) > SCDW.indexOf(resultUnit))
+                   {
+                         capResult = capResult.indexOf(1);
+                   }
+             }
+       }
+       capResult = currCap + capResult;
+       prevChar = currChar;
+       posIndex += 1;
+       currCap = "";
+    }
+    capResult.append("整");
+    return capResult;
+}
 
 void BillsView::prints(QPrinter *printer)
 {
@@ -494,30 +555,38 @@ void BillsView::prints(QPrinter *printer)
     headerFont.setPointSize(11);
     headerFmt =new QFontMetrics(headerFont);
 
-    QString titleText("金花布业销售单");
+    QString titleText("商丘金花布业有限公司销售清单");
     int titleWidth = titleFmt->width(titleText);
     QString headerText;
     QString footerText;
     QString pageText;
-    QString date=QDate::currentDate().toString(QLocale().dateFormat());
-    QString time=QTime::currentTime().toString(QLocale().timeFormat(QLocale::ShortFormat));
-    headerText = m_customer +"     ";
-    headerText.append("地址: 商丘市梁园区海淀路9号金花布业     ");
-    headerText.append("电话: 13939605733     ");
+    QString year, month, day;
+    QDate date = QDate::currentDate();
+    year.setNum(date.year());
+    month.setNum(date.month());
+    day.setNum(date.day());
+    QString dateString(year);
+    dateString.append("-").append(month).append("-").append(day);
+    headerText = m_customer +"  ";
+    headerText.append("地址: 商丘市梁园区清凉寺大道与陇海路交叉口往西300路北  ");
+    headerText.append("电话: 0370-2212794  ");
     headerText.append("日期: ");
-    headerText.append(date);
+    headerText.append(dateString);
     int headerWidth = headerFmt->width(headerText);
     footerText="制单人: ";
-    footerText.append(m_maker).append("     ");
-    footerText.append("司机: ").append(m_driver).append("     ");
-    footerText.append("银行卡号: 6666666666666666666");
+    footerText.append(m_maker).append("                        ");
+    footerText.append("司机: ").append(m_driver).append("                        ");
+    footerText.append("卡号: 邮政卡号: 6221 8850 6100 7763 400 户名: 孟金花");
+    footerText.append("\n                                                                    农行卡号: 6228 4923 8900 1244 974 户名: 李凤启");
+    footerText.append("\n                                                                    工行卡号: 6222 0817 1600 1059 059 户名: 李凤启");
+    footerText.append("\n                                                                    农信社卡号: 6229 9113 4900 724 633 户名: 李凤启");
 
     int footerWidth = headerFmt->width(footerText);
     QRect rectOrig = geometry();
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
-    int marginLeft = 20, marginTop = 100, marginRight = 20, marginBottom = 100;
+    int marginLeft = 10, marginTop = 100, marginRight = 10, marginBottom = 100;
 
     QRect paperRect = printer->pageRect();
     paperRect.adjust(0, 0, -marginLeft - marginRight, -marginTop - marginBottom);
@@ -529,7 +598,7 @@ void BillsView::prints(QPrinter *printer)
     QVector<int> printAreaStartCol, printAreaWidth;
 
     CalcultPrintAreaRow(paperRect.height(), row_pageCount, printAreaStartRow, printAreaHeight);
-    CalcultPrintAreaCol(paperRect.width(),  col_pageCount, printAreaStartCol, printAreaWidth);
+    CalcultPrintAreaCol(paperRect.width()+40,  col_pageCount, printAreaStartCol, printAreaWidth);
 
     //限制打印页数, 处理实际打印页(根据需要自己处理，判断有效打印区域)
 //    CalcultTableViewPage(printAreaStartRow, printAreaStartCol, row_pageCount, col_pageCount);
@@ -553,8 +622,37 @@ void BillsView::prints(QPrinter *printer)
             int pageWidth = headerFmt->width(pageText);
             painter.drawText(QRectF(printer->pageRect().width()/2-titleWidth/2, marginTop/4, titleWidth, titleFmt->height()), titleText);
             painter.drawText(QRectF(marginLeft, marginTop-headerFmt->height()-2, headerWidth, headerFmt->height()), headerText);
-            painter.drawText(QRectF(marginLeft, marginTop+printAreaHeight[i]+3, footerWidth, headerFmt->height()), footerText);
             painter.drawText(QRectF(marginLeft, printer->pageRect().height()-headerFmt->height()-2, pageWidth, headerFmt->height()), pageText);
+            if (i == row_pageCount-1) // 最后一页，加上合计信息
+            {
+                QString totalUpper("合(大写)计: ");
+                QString totalCase("合(小写)计: ");
+                QString totalUpperValue = getUpperTotalMoney(m_totalMoney);
+                QString totalCaseValue = m_totalMoney.setNum(m_totalMoney.toFloat(), 'f', 2);
+
+                int totalHeight = headerFmt->height()+8;
+                // 上包边
+                painter.drawLine(QPointF(marginLeft, marginTop+printAreaHeight[i]+1), QPointF(marginLeft+printAreaWidth[j], marginTop+printAreaHeight[i]+1));
+
+                // 大写
+                painter.drawLine(QPointF(marginLeft, marginTop+printAreaHeight[i]+1), QPointF(marginLeft, marginTop+printAreaHeight[i]+1+totalHeight));
+                painter.drawText(QPointF(marginLeft+2, marginTop+printAreaHeight[i]+1+totalHeight*0.8), totalUpper);
+                painter.drawLine(QPointF(marginLeft+headerFmt->width(totalUpper)+4, marginTop+printAreaHeight[i]+1), QPointF(marginLeft+headerFmt->width(totalUpper)+4, marginTop+printAreaHeight[i]+1+totalHeight));
+                painter.drawText(QPointF(marginLeft+headerFmt->width(totalUpper)+6, marginTop+printAreaHeight[i]+1+totalHeight*0.8), totalUpperValue);
+                // 小写
+                painter.drawLine(QPointF(marginLeft+headerFmt->width(totalUpper)+headerFmt->width(totalUpperValue)+8, marginTop+printAreaHeight[i]+1), QPointF(marginLeft+headerFmt->width(totalUpper)+headerFmt->width(totalUpperValue)+8, marginTop+printAreaHeight[i]+1+totalHeight));
+                painter.drawText(QPointF(marginLeft+headerFmt->width(totalUpper)+headerFmt->width(totalUpperValue)+10, marginTop+printAreaHeight[i]+1+totalHeight*0.8), totalCase);
+                painter.drawLine(QPointF(marginLeft+headerFmt->width(totalUpper)+headerFmt->width(totalUpperValue)+headerFmt->width(totalCase)+12, marginTop+printAreaHeight[i]+1), QPointF(marginLeft+headerFmt->width(totalUpper)+headerFmt->width(totalUpperValue)+headerFmt->width(totalCase)+12, marginTop+printAreaHeight[i]+1+totalHeight));
+                painter.drawText(QPointF(marginLeft+headerFmt->width(totalUpper)+headerFmt->width(totalUpperValue)+headerFmt->width(totalCase)+14, marginTop+printAreaHeight[i]+1+totalHeight*0.8), totalCaseValue);
+                // 右包边
+                painter.drawLine(QPointF(marginLeft+printAreaWidth[j], marginTop+printAreaHeight[i]+1), QPointF(marginLeft+printAreaWidth[j], marginTop+printAreaHeight[i]+totalHeight+2));
+                // 底包边
+                painter.drawLine(QPointF(marginLeft, marginTop+printAreaHeight[i]+totalHeight+2), QPointF(marginLeft+printAreaWidth[j], marginTop+printAreaHeight[i]+totalHeight+2));
+                painter.drawText(QRectF(marginLeft, marginTop+printAreaHeight[i]+totalHeight+5, footerWidth, headerFmt->height()*4+4), footerText); // 在总计下面显示页脚信息
+            } else // 直接在表格下面显示页脚信息
+            {
+                painter.drawText(QRectF(marginLeft, marginTop+printAreaHeight[i]+3, footerWidth, headerFmt->height()*4+4), footerText);
+            }
             if (i > 0 || col_pageCount == 1 && !printer->fullPage())
             {
                 painter.drawLine(QPointF(marginLeft, marginTop+printAreaHeight[i]+1), QPointF(marginLeft+printAreaWidth[j], marginTop+printAreaHeight[i]+1));
@@ -573,14 +671,12 @@ void BillsView::prints(QPrinter *printer)
     }
 
     painter.end();
-    setGeometry(rectOrig);
     for(int m = 0; m < model()->rowCount(); m++)
     {
         setRowHidden(m, false);
-
     }
     for (k = 0; k < this->model()->columnCount() && k < 12; k++) setColumnHidden(k, false);     //重新把列显示出来
-
+    setGeometry(rectOrig); // 最后再复原，否则最后一列会变宽
 #endif
 
 }

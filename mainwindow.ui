@@ -165,7 +165,7 @@
        </font>
       </property>
       <property name="text">
-       <string>金花布业销售单</string>
+       <string>商丘金花布业有限公司销售清单</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>
@@ -198,7 +198,7 @@
          </font>
         </property>
         <property name="text">
-         <string>地址: 商丘市梁园区海淀路9号</string>
+         <string>地址: 商丘市梁园区清凉寺大道与陇海路交叉口往西300路北</string>
         </property>
        </widget>
       </item>
@@ -212,7 +212,7 @@
          </font>
         </property>
         <property name="text">
-         <string>电话: 13333033333</string>
+         <string>电话: 0370-2212794</string>
         </property>
        </widget>
       </item>
@@ -235,7 +235,7 @@
     <item>
      <widget class="BillsView" name="tableBills">
       <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
@@ -341,7 +341,10 @@
          </font>
         </property>
         <property name="text">
-         <string>银行卡号: 6666666666666666666</string>
+         <string>卡号: 邮政卡号: 6221 8850 6100 7763 400 户名: 孟金花
+      农行卡号: 6228 4923 8900 1244 974 户名: 李凤启
+      工行卡号: 6222 0817 1600 1059 059 户名: 李凤启
+      农信社卡号: 6229 9113 4900 724 633 户名: 李凤启	</string>
         </property>
        </widget>
       </item>

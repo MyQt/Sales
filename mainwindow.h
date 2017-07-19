@@ -66,7 +66,7 @@ private:
     bool m_canMoveWindow;
     bool m_canStretchWindow;
     bool m_isOperationRunning;
-
+    QSize m_miniPrintSize;
     TDPreviewDialog::Grids grid;
     QPrinter *m_printer;
 private:

@@ -50,6 +50,8 @@ public:
     void print();
     QList<BillData *>& getAllBills() { return m_billList; }
     QList<BillData *> getBillsByCustomer(QString& customer);
+    QString getTotalMoneyByCustomer(QString& customer);
+    int getLastID() const;
 private:
     QModelIndex insertBill(BillData* bill, int row);
 private:

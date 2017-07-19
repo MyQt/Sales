@@ -4,6 +4,8 @@
 #include <QScrollArea>
 #include <QTableView>
 #include <QPrinter>
+#include "billmodel.h"
+
 class BillsView : public QTableView
 {
     Q_OBJECT
@@ -28,6 +30,8 @@ public:
         m_maker = maker;
         m_driver = driver;
     }
+    void setTotalMoney(QString totalMoney) { m_totalMoney = totalMoney; }
+    QString getUpperTotalMoney(QString totalMoney);
 protected:
     void paintEvent(QPaintEvent *e) Q_DECL_OVERRIDE;
     void mouseMoveEvent(QMouseEvent* e) Q_DECL_OVERRIDE;
@@ -43,6 +47,7 @@ private:
     QString m_driver;
     void setupSignalsSlots();
     void setupStyleSheet();
+    QString m_totalMoney;
 
 public slots:
     void rowsAboutToBeMoved(const QModelIndex &sourceParent, int sourceStart, int sourceEnd,
