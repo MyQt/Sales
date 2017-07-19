@@ -393,7 +393,11 @@ void MainWindow::selectBill(const QModelIndex &billIndex)
 //        m_billView->scrollTo(m_currentSelectedBillProxy);
 
     }else{
-        qDebug() << "MainWindow::selectBill() : billIndex is not valid";
+        m_currentSelectedBillProxy = billIndex;
+
+        m_billView->clearSelection();
+
+
     }
 }
 
@@ -581,7 +585,7 @@ void MainWindow::print()   //printFlag =2 , 打印预览
 
     QPrintPreviewDialog preview(&printer, this);
     preview.setWindowTitle("打印预览");
-
+    selectBill(QModelIndex());
 //    preview.setMinimumSize(m_miniPrintSize);
     preview.setFixedSize(m_miniPrintSize);
     m_billView->setInputInfo(ui->labelCustomer->text(), ui->lineMaker->text(), ui->lineDriver->text());
