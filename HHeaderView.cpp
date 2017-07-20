@@ -25,7 +25,7 @@ HHeaderView::HHeaderView(Qt::Orientation orientation, QWidget * parent) : QHeade
     this->setOffset(0);    //! 这将会影响item绘制的位置
     setSectionsClickable(false);
     setHighlightSections(false);
-    setMouseTracking(false); 
+    setMouseTracking(false);
 
     setAttribute(Qt::WA_Hover, false);
 }
@@ -60,32 +60,32 @@ void HHeaderView::initHeaderView(HHeaderModel *pModel)
 
     //! 设置合并单元格
     pModel->setSpan(0,2,1,5);
-    pModel->takeVerticalHeaderItem(2);
-    pModel->takeVerticalHeaderItem(3);
-    pModel->takeVerticalHeaderItem(4);
-    pModel->takeVerticalHeaderItem(5);
-    pModel->takeVerticalHeaderItem(6);
+//    pModel->takeVerticalHeaderItem(2);
+//    pModel->takeVerticalHeaderItem(3);
+//    pModel->takeVerticalHeaderItem(4);
+//    pModel->takeVerticalHeaderItem(5);
+//    pModel->takeVerticalHeaderItem(6);
 }
 
 void HHeaderView::setSectionSize(HHeaderModel *pModel, int width)
 {
     int nColWdth = width / pModel->getColumnCount();
 
-//    setDefaultSectionSize(nColWdth);
+    resizeSections(QHeaderView::Stretch);
 
-//    resizeSection(0, 140);
-//    resizeSection(1, nColWdth*2);
-//    resizeSection(2, nColWdth);
-//    resizeSection(3, nColWdth);
-//    resizeSection(4, nColWdth);
-//    resizeSection(5, nColWdth);
-//    resizeSection(6, nColWdth);
-//    resizeSection(7, nColWdth*2);
-//    resizeSection(8, nColWdth*2);
-//    resizeSection(9, nColWdth*2);
-//    resizeSection(10, nColWdth*2);
-//    resizeSection(11, nColWdth*2);
-//    resizeSection(12, nColWdth*7);
+    resizeSection(0, nColWdth);
+    resizeSection(1, nColWdth);
+    resizeSection(2, nColWdth/15);
+    resizeSection(3, nColWdth/15);
+    resizeSection(4, nColWdth/15);
+    resizeSection(5, nColWdth/15);
+    resizeSection(6, nColWdth/15);
+    resizeSection(7, nColWdth*2);
+    resizeSection(8, nColWdth*2);
+    resizeSection(9, nColWdth);
+    resizeSection(10, nColWdth);
+    resizeSection(11, nColWdth*2);
+    resizeSection(12, nColWdth/2);
 }
 
 void HHeaderView::setQuit()
@@ -159,10 +159,10 @@ void HHeaderView::paintEvent(QPaintEvent *event)
             header_opt.position = QStyleOptionHeader::Middle;
 
             //! 判断当前行是否处于鼠标悬停状态
-            if(m_hoverIndex == model->index(row, col, QModelIndex()))
-            {
-                header_opt.state |= QStyle::State_MouseOver;
-            }
+//            if(m_hoverIndex == model->index(row, col, QModelIndex()))
+//            {
+//                header_opt.state |= QStyle::State_MouseOver;
+//            }
 
             //! 获取某个cell要显示的文本
             opt.text = model->item(row, col);

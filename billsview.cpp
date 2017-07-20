@@ -24,7 +24,8 @@ BillsView::BillsView(QWidget *parent)
 {
 
     QTimer::singleShot(0, this, SLOT(init()));
-
+    resizeColumnsToContents ();
+    resizeRowsToContents();
     setSelectionBehavior(QAbstractItemView::SelectRows);
     setEditTriggers(QAbstractItemView::NoEditTriggers);
 }
@@ -38,33 +39,33 @@ BillsView::~BillsView()
 
 void BillsView::initHeaderView()
 {
+
    //! 初始化表格，这个表格我只自定义横向表头，纵向不管
    HHeaderView *pHeadView = new HHeaderView(Qt::Horizontal);
    HHeaderModel *pHeadModel = new HHeaderModel();
-   pHeadView->initHeaderView(pHeadModel);
    pHeadView->setModel(pHeadModel);
+   pHeadView->initHeaderView(pHeadModel);
    setHorizontalHeader(pHeadView);
 
    pHeadView->setSectionSize(pHeadModel, width());
-   int colWidth = width()/pHeadModel->getColumnCount();
-   setColumnWidth(0, colWidth);
-   setColumnWidth(1, colWidth);
-   setColumnWidth(2, colWidth);
-   setColumnWidth(3, colWidth/2);
-   setColumnWidth(4, colWidth/2);
-   setColumnWidth(5, colWidth/2);
-   setColumnWidth(6, colWidth/2);
-   setColumnWidth(7, colWidth);
-   setColumnWidth(8, colWidth);
-   setColumnWidth(9, colWidth);
-   setColumnWidth(10, colWidth);
-   setColumnWidth(11, colWidth);
-   setColumnWidth(12, colWidth*3);
-//   resizeColumnsToContents();
+//   int colWidth = width()/pHeadModel->getColumnCount();
+//   setColumnWidth(0, colWidth);
+//   setColumnWidth(1, colWidth);
+//   setColumnWidth(2, colWidth);
+//   setColumnWidth(3, colWidth);
+//   setColumnWidth(4, colWidth);
+//   setColumnWidth(5, colWidth);
+//   setColumnWidth(6, colWidth);
+//   setColumnWidth(7, colWidth);
+//   setColumnWidth(8, colWidth);
+//   setColumnWidth(9, colWidth);
+//   setColumnWidth(10, colWidth*2);
+//   setColumnWidth(11, colWidth*2);
+//   setColumnWidth(12, colWidth);
    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
-   QTableView::verticalHeader()->hide();
+   verticalHeader()->hide();
 }
 
 //void BillsView::animateAddedRow(const QModelIndex& parent, int start, int end)
@@ -185,7 +186,7 @@ void BillsView::init()
 {
     setMouseTracking(true);
     setUpdatesEnabled(true);
-    viewport()->setAttribute(Qt::WA_Hover);
+//    viewport()->setAttribute(Qt::WA_Hover);
 
     setupStyleSheet();
     setupSignalsSlots();
@@ -543,16 +544,17 @@ void BillsView::prints(QPrinter *printer)
     QFont font;
     QFontMetrics *titleFmt;
     QFontMetrics *headerFmt;
-    QFontMetrics *fmt;
+//    QFontMetrics *fmt;
     //title font
-    titleFont.setPointSize(14);
+    titleFont.setPointSize(16);
     titleFont.setBold(true);
+    titleFont.setUnderline(true);
     titleFmt =new QFontMetrics(titleFont);
 
 
     //header font
     headerFont.setBold(true);
-    headerFont.setPointSize(11);
+    headerFont.setPointSize(10);
     headerFmt =new QFontMetrics(headerFont);
 
     QString titleText("商丘金花布业有限公司销售清单");
@@ -574,12 +576,12 @@ void BillsView::prints(QPrinter *printer)
     headerText.append(dateString);
     int headerWidth = headerFmt->width(headerText);
     footerText="制单人: ";
-    footerText.append(m_maker).append("                        ");
-    footerText.append("司机: ").append(m_driver).append("                        ");
+    footerText.append(m_maker).append("                ");
+    footerText.append("司机: ").append(m_driver).append("                ");
     footerText.append("卡号: 邮政卡号: 6221 8850 6100 7763 400 户名: 孟金花");
-    footerText.append("\n                                                                    农行卡号: 6228 4923 8900 1244 974 户名: 李凤启");
-    footerText.append("\n                                                                    工行卡号: 6222 0817 1600 1059 059 户名: 李凤启");
-    footerText.append("\n                                                                    农信社卡号: 6229 9113 4900 724 633 户名: 李凤启");
+    footerText.append("\n                                                  农行卡号: 6228 4923 8900 1244 974 户名: 李凤启");
+    footerText.append("\n                                                  工行卡号: 6222 0817 1600 1059 059 户名: 李凤启");
+    footerText.append("\n                                                  农信社卡号: 6229 9113 4900 724 633 户名: 李凤启");
 
     int footerWidth = headerFmt->width(footerText);
     QRect rectOrig = geometry();
@@ -620,8 +622,12 @@ void BillsView::prints(QPrinter *printer)
             pageText.append(QString::number(i+1));
             pageText.append(" / ").append(QString::number(row_pageCount));
             int pageWidth = headerFmt->width(pageText);
+            QFont fontRe = painter.font();
+            painter.setFont(titleFont);
             painter.drawText(QRectF(printer->pageRect().width()/2-titleWidth/2, marginTop/4, titleWidth, titleFmt->height()), titleText);
+            painter.setFont(headerFont);
             painter.drawText(QRectF(marginLeft, marginTop-headerFmt->height()-2, headerWidth, headerFmt->height()), headerText);
+            painter.setFont(headerFont);
             painter.drawText(QRectF(marginLeft, printer->pageRect().height()-headerFmt->height()-2, pageWidth, headerFmt->height()), pageText);
             if (i == row_pageCount-1) // 最后一页，加上合计信息
             {
@@ -631,6 +637,7 @@ void BillsView::prints(QPrinter *printer)
                 QString totalCaseValue = m_totalMoney.setNum(m_totalMoney.toFloat(), 'f', 2);
 
                 int totalHeight = headerFmt->height()+8;
+
                 // 上包边
                 painter.drawLine(QPointF(marginLeft, marginTop+printAreaHeight[i]+1), QPointF(marginLeft+printAreaWidth[j], marginTop+printAreaHeight[i]+1));
 
@@ -648,15 +655,18 @@ void BillsView::prints(QPrinter *printer)
                 painter.drawLine(QPointF(marginLeft+printAreaWidth[j], marginTop+printAreaHeight[i]+1), QPointF(marginLeft+printAreaWidth[j], marginTop+printAreaHeight[i]+totalHeight+2));
                 // 底包边
                 painter.drawLine(QPointF(marginLeft, marginTop+printAreaHeight[i]+totalHeight+2), QPointF(marginLeft+printAreaWidth[j], marginTop+printAreaHeight[i]+totalHeight+2));
-                painter.drawText(QRectF(marginLeft, marginTop+printAreaHeight[i]+totalHeight+5, footerWidth, headerFmt->height()*4+4), footerText); // 在总计下面显示页脚信息
+                painter.setFont(headerFont);
+                painter.drawText(QRectF(marginLeft, marginTop+printAreaHeight[i]+totalHeight+5, footerWidth, headerFmt->height()*4+8), footerText); // 在总计下面显示页脚信息
             } else // 直接在表格下面显示页脚信息
             {
-                painter.drawText(QRectF(marginLeft, marginTop+printAreaHeight[i]+3, footerWidth, headerFmt->height()*4+4), footerText);
+                painter.setFont(headerFont);
+                painter.drawText(QRectF(marginLeft, marginTop+printAreaHeight[i]+3, footerWidth, headerFmt->height()*4+8), footerText);
             }
             if (i > 0 || col_pageCount == 1 && !printer->fullPage())
             {
                 painter.drawLine(QPointF(marginLeft, marginTop+printAreaHeight[i]+1), QPointF(marginLeft+printAreaWidth[j], marginTop+printAreaHeight[i]+1));
             }
+            painter.setFont(fontRe);
             render(&painter, QPoint(marginLeft, marginTop), QRegion(0, 0, printAreaWidth[j], printAreaHeight[i]));            //绘制到指定区域
             //隐藏列
             for (k =  printAreaStartCol[j]; k < printAreaStartCol[j + 1]; k++) setColumnHidden(k, true);

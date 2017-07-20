@@ -46,9 +46,9 @@ void HHeaderItemDelegate::paint (QPainter * painter
     QApplication::style()->drawControl(QStyle::CE_Header, &header_opt, painter);
     painter->restore();
     painter->setPen(QColor(255,0,0));
-    QStyleOptionViewItemV4 xopt(option);
-    xopt.state &= ~QStyle::State_MouseOver;    
-    xopt.rect = smallRect;
+//    QStyleOptionViewItemV4 xopt(option);
+//    xopt.state &= ~QStyle::State_MouseOver;
+//    xopt.rect = smallRect;
 }
 
 
