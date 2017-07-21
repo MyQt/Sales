@@ -12,6 +12,27 @@ BillModel::~BillModel()
     m_billList.clear();
 }
 
+void BillModel::resetUnRepeatInfo(BillData *bill)
+{
+    bill->setTotalBillNum("0");
+    bill->setTotalBillPrice("0");
+    bill->setTotalDetailCodeNum("0");
+    for (int i = 0; i < m_billList.size(); i++)
+    {
+        BillData* pData = m_billList.at(i);
+        if (pData != Q_NULLPTR && pData->no()==bill->no()&& pData->variety()==bill->variety() && pData->customer()==bill->customer())
+        {
+            QString detailCodeNum, billNum, billPrice;
+            detailCodeNum.setNum(pData->detailCodeNum());
+            billNum.setNum(pData->billNum());
+            billPrice.setNum(pData->billPrice(), 'f', 2);
+            bill->addTotalDetailCodeNum(detailCodeNum);
+            bill->addTotalBillNum(billNum);
+            bill->addTotalBillPrice(billPrice);
+        }
+    }
+}
+
 QModelIndex BillModel::addBill(BillData* bill)
 {
     int rowCnt = rowCount();
@@ -90,22 +111,35 @@ BillData* BillModel::removeBill(const QModelIndex &billIndex)
     beginRemoveRows(QModelIndex(), row, row);
     BillData* bill = m_billList.takeAt(row);
     endRemoveRows();
-    // 减去该清单项客户编号品种的布匹的件数，数量，金额
-    for (int i = 0; i < m_billList.size(); i++)
+    if (!bill->isRepeated()) // 如果是删除第一项，则将总计信息放入第二项
     {
-        BillData* pData = m_billList.at(i);
-        if (pData != Q_NULLPTR && !pData->isRepeated() && pData->no() == bill->no() && pData->variety() == bill->variety() && pData->customer() == bill->customer())
+        int nIndex = getFirstExistedItem(bill);
+        if (nIndex != -1)
         {
-            QString detailCodeNum, billNum, billPrice;
-            detailCodeNum.setNum(bill->detailCodeNum());
-            billNum.setNum(bill->billNum());
-            billPrice.setNum(bill->billPrice(), 'f', 2);
-            pData->decTotalDetailCodeNum(detailCodeNum);
-            pData->decTotalBillNum(billNum);
-            pData->decTotalBillPrice(billPrice);
-            break;
+            BillData* pData = m_billList.at(nIndex);
+            pData->setRepeated(false);
+            resetUnRepeatInfo(pData);
+        }
+    } else
+    {
+        // 减去该清单项客户编号品种的布匹的件数，数量，金额
+        for (int i = 0; i < m_billList.size(); i++)
+        {
+            BillData* pData = m_billList.at(i);
+            if (pData != Q_NULLPTR && !pData->isRepeated() && pData->no() == bill->no() && pData->variety() == bill->variety() && pData->customer() == bill->customer())
+            {
+                QString detailCodeNum, billNum, billPrice;
+                detailCodeNum.setNum(bill->detailCodeNum());
+                billNum.setNum(bill->billNum());
+                billPrice.setNum(bill->billPrice(), 'f', 2);
+                pData->decTotalDetailCodeNum(detailCodeNum);
+                pData->decTotalBillNum(billNum);
+                pData->decTotalBillPrice(billPrice);
+                break;
+            }
         }
     }
+
     return bill;
 }
 
@@ -398,6 +432,25 @@ int BillModel::getLastExistedItem(BillData *bill)
                 index = i;
             } else if (index != -1) // 该清单与目标不同且已经找到了，退出循环
             {
+                break;
+            }
+        }
+    }
+
+    return index;
+}
+
+int BillModel::getFirstExistedItem(BillData *bill)
+{
+    int index = -1;
+    for (int i = 0; i < m_billList.size(); i++)
+    {
+        BillData* pData = m_billList.at(i);
+        if (pData != Q_NULLPTR)
+        {
+            if (bill->no() == pData->no() && bill->variety() == pData->variety() && bill->customer() == pData->customer())
+            {
+                index = i;
                 break;
             }
         }

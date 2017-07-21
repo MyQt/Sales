@@ -308,7 +308,8 @@ void MainWindow::setupModelView()
     m_proxyModel->setFilterKeyColumn(12);
     m_proxyModel->setFilterRole(Qt::DisplayRole);
     m_proxyModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
-
+    m_proxyModel->setSortRole(Qt::InitialSortOrderRole);
+    m_proxyModel->invalidate();
 //    m_billView->setItemDelegate(new BillWidgetDelegate(m_billView));
     m_billView->setModel(m_proxyModel);  
     m_billView->initHeaderView();

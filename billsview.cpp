@@ -28,6 +28,7 @@ BillsView::BillsView(QWidget *parent)
     resizeRowsToContents();
     setSelectionBehavior(QAbstractItemView::SelectRows);
     setEditTriggers(QAbstractItemView::NoEditTriggers);
+
 }
 
 BillsView::~BillsView()
@@ -47,7 +48,7 @@ void BillsView::initHeaderView()
    pHeadView->initHeaderView(pHeadModel);
    setHorizontalHeader(pHeadView);
 
-   pHeadView->setSectionSize(pHeadModel, width());
+//   pHeadView->setSectionSize(pHeadModel, width());
 //   int colWidth = width()/pHeadModel->getColumnCount();
 //   setColumnWidth(0, colWidth);
 //   setColumnWidth(1, colWidth);
@@ -96,8 +97,8 @@ void BillsView::paintEvent(QPaintEvent *e)
 //    BillWidgetDelegate* delegate = static_cast<BillWidgetDelegate*>(itemDelegate());
 //    if(delegate != Q_NULLPTR)
 //        delegate->setCurrentSelectedIndex(currentIndex());
-
     QTableView::paintEvent(e);
+
 }
 
 /**
@@ -560,7 +561,7 @@ void BillsView::prints(QPrinter *printer)
     QString titleText("商丘金花布业有限公司销售清单");
     int titleWidth = titleFmt->width(titleText);
     QString headerText;
-    QString footerText;
+    QString footerText1;
     QString pageText;
     QString year, month, day;
     QDate date = QDate::currentDate();
@@ -575,15 +576,23 @@ void BillsView::prints(QPrinter *printer)
     headerText.append("日期: ");
     headerText.append(dateString);
     int headerWidth = headerFmt->width(headerText);
-    footerText="制单人: ";
-    footerText.append(m_maker).append("                ");
-    footerText.append("司机: ").append(m_driver).append("                ");
-    footerText.append("卡号: 邮政卡号: 6221 8850 6100 7763 400 户名: 孟金花");
-    footerText.append("\n                                                  农行卡号: 6228 4923 8900 1244 974 户名: 李凤启");
-    footerText.append("\n                                                  工行卡号: 6222 0817 1600 1059 059 户名: 李凤启");
-    footerText.append("\n                                                  农信社卡号: 6229 9113 4900 724 633 户名: 李凤启");
+    footerText1="制单人: ";
+    footerText1.append(m_maker).append("            ");
+    footerText1.append("司机: ").append(m_driver).append("            ");
+    footerText1.append("卡号: ");
+    int footer1Length = headerFmt->width(footerText1);
+    footerText1.append("邮政卡号: 6221 8850 6100 7763 400 户名: 孟金花");
+    QString footerText2;
+    footerText2.append("农行卡号: 6228 4923 8900 1244 974 户名: 李凤启\r\n");
+    QString footerText3;
+    footerText3.append("工行卡号: 6222 0817 1600 1059 059 户名: 李凤启\r\n");
+    QString footerText4;
+    footerText4.append("农信社卡号: 6229 9113 4900 724 633 户名: 李凤启");
+    int footerWidth1 = headerFmt->width(footerText1);
+    int footerWidth2 = headerFmt->width(footerText2);
+    int footerWidth3 = headerFmt->width(footerText3);
+    int footerWidth4 = headerFmt->width(footerText4);
 
-    int footerWidth = headerFmt->width(footerText);
     QRect rectOrig = geometry();
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -656,12 +665,20 @@ void BillsView::prints(QPrinter *printer)
                 // 底包边
                 painter.drawLine(QPointF(marginLeft, marginTop+printAreaHeight[i]+totalHeight+2), QPointF(marginLeft+printAreaWidth[j], marginTop+printAreaHeight[i]+totalHeight+2));
                 painter.setFont(headerFont);
-                painter.drawText(QRectF(marginLeft, marginTop+printAreaHeight[i]+totalHeight+5, footerWidth, headerFmt->height()*4+8), footerText); // 在总计下面显示页脚信息
+                painter.drawText(QRectF(marginLeft, marginTop+printAreaHeight[i]+totalHeight+4, footerWidth1, headerFmt->height()), footerText1); // 在总计下面显示页脚信息
+                painter.drawText(QRectF(marginLeft+footer1Length, marginTop+printAreaHeight[i]+totalHeight*2+4, footerWidth2, headerFmt->height()), footerText2); // 在总计下面显示页脚信息
+                painter.drawText(QRectF(marginLeft+footer1Length, marginTop+printAreaHeight[i]+totalHeight*3+4, footerWidth3, headerFmt->height()), footerText3); // 在总计下面显示页脚信息
+                painter.drawText(QRectF(marginLeft+footer1Length, marginTop+printAreaHeight[i]+totalHeight*4+4, footerWidth4, headerFmt->height()), footerText4); // 在总计下面显示页脚信息
+
             } else // 直接在表格下面显示页脚信息
             {
+                int totalHeight = headerFmt->height()+8;
                 painter.setFont(headerFont);
-                painter.drawText(QRectF(marginLeft, marginTop+printAreaHeight[i]+3, footerWidth, headerFmt->height()*4+8), footerText);
-            }
+                painter.drawText(QRectF(marginLeft, marginTop+printAreaHeight[i]+4, footerWidth1, headerFmt->height()), footerText1); // 在总计下面显示页脚信息
+                painter.drawText(QRectF(marginLeft+footer1Length, marginTop+printAreaHeight[i]+totalHeight+4, footerWidth2, headerFmt->height()), footerText2); // 在总计下面显示页脚信息
+                painter.drawText(QRectF(marginLeft+footer1Length, marginTop+printAreaHeight[i]+totalHeight*2+4, footerWidth3, headerFmt->height()), footerText3); // 在总计下面显示页脚信息
+                painter.drawText(QRectF(marginLeft+footer1Length, marginTop+printAreaHeight[i]+totalHeight*3+4, footerWidth4, headerFmt->height()), footerText4); // 在总计下面显示页脚信息
+                            }
             if (i > 0 || col_pageCount == 1 && !printer->fullPage())
             {
                 painter.drawLine(QPointF(marginLeft, marginTop+printAreaHeight[i]+1), QPointF(marginLeft+printAreaWidth[j], marginTop+printAreaHeight[i]+1));

@@ -27,11 +27,13 @@ void NewDlg::init(QList<BillData *>& billlist, QString& customer)
         ui->editCustomer->setFocusPolicy(Qt::NoFocus);
         InitComboxItem();
         ui->comboNo->show();
+        ui->labelChoiceNo->show();
     } else
     {
         ui->editCustomer->clear();
         ui->editCustomer->setFocusPolicy(Qt::StrongFocus);
         ui->comboNo->hide();
+        ui->labelChoiceNo->hide();
     }
 }
 
@@ -39,6 +41,7 @@ void NewDlg::InitComboxItem()
 {
     if (m_billList.isEmpty())
     {
+        ui->labelChoiceNo->hide();
         ui->comboNo->hide();
         return;
     }
@@ -65,7 +68,7 @@ void NewDlg::on_btnSure_clicked()
     billData.setVariety(ui->editVariety->text());
     billData.setPrice(ui->editPrice->text());
     billData.setCustomer(ui->editCustomer->text());
-    billData.setComment(ui->editComment->toPlainText());
+    billData.setComment(ui->editComment->text());
     QString detailCode;
     if (!ui->editCode1->text().isEmpty())
         detailCode.append(ui->editCode1->text());
@@ -104,6 +107,9 @@ void NewDlg::on_comboNo_currentIndexChanged(const QString &arg1)
         ui->editVariety->setFocusPolicy(Qt::StrongFocus);
         ui->editPrice->setFocusPolicy(Qt::StrongFocus);
         ui->editNo->setFocusPolicy(Qt::StrongFocus);
+        ui->editVariety->clear();
+        ui->editPrice->clear();
+        ui->editNo->clear();
         return;
     }
     ui->editNo->setText(arg1);

@@ -45,6 +45,8 @@ public:
     int columnCount(const QModelIndex &parent = QModelIndex()) const;
     int getExistedItem(BillData* bill);
     int getLastExistedItem(BillData* bill);
+    int getFirstExistedItem(BillData* bill);
+
     int getPreBillRow(BillData* bill); // 获取上一个no秸
     void sort(int column, Qt::SortOrder order) Q_DECL_OVERRIDE;
     void print();
@@ -52,6 +54,7 @@ public:
     QList<BillData *> getBillsByCustomer(QString& customer);
     QString getTotalMoneyByCustomer(QString& customer);
     int getLastID() const;
+    void resetUnRepeatInfo(BillData* bill); // 重置第一项信息
 private:
     QModelIndex insertBill(BillData* bill, int row);
 private:

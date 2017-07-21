@@ -60,11 +60,11 @@ void HHeaderView::initHeaderView(HHeaderModel *pModel)
 
     //! 设置合并单元格
     pModel->setSpan(0,2,1,5);
-//    pModel->takeVerticalHeaderItem(2);
-//    pModel->takeVerticalHeaderItem(3);
-//    pModel->takeVerticalHeaderItem(4);
-//    pModel->takeVerticalHeaderItem(5);
-//    pModel->takeVerticalHeaderItem(6);
+    pModel->takeVerticalHeaderItem(2);
+    pModel->takeVerticalHeaderItem(3);
+    pModel->takeVerticalHeaderItem(4);
+    pModel->takeVerticalHeaderItem(5);
+    pModel->takeVerticalHeaderItem(6);
 }
 
 void HHeaderView::setSectionSize(HHeaderModel *pModel, int width)
