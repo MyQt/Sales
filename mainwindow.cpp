@@ -9,6 +9,7 @@
 #include <QPainter>
 #include <QTextDocument>
 #include <QTooltip>
+#include <QInputDialog>
 
 #pragma execution_character_set("utf-8")
 
@@ -35,6 +36,20 @@ MainWindow::MainWindow(QWidget *parent) :
     m_isOperationRunning(false)
 {
     ui->setupUi(this);
+//    bool isOk = false;
+//    QString text = QInputDialog::getText(NULL, "Password",
+//                                            "Please input password",
+//                                            QLineEdit::Password,    //输入的是密码，不显示明文
+//                                            NULL,
+//                                            &isOk);
+
+//    if(text != "yuer1234") {
+//       QMessageBox::information(NULL, "Information",
+//                                           "Your password is wrong",
+//                                           QMessageBox::Yes);
+//       setEnabled(false);
+//       exit(0);
+//    }
     grid=TDPreviewDialog::NormalGrid;
     setupLine();
     setupLineEdit();
